@@ -1,37 +1,40 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-import ImageSlider from "@/components/image-slider"
-import { useAuth } from "@/contexts/auth-context"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import ImageSlider from '@/components/image-slider';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/contexts/toast-context';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
-  const { login, isLoading } = useAuth()
-  const [loginError, setLoginError] = useState("")
+  const { login, isLoading } = useAuth();
+  const [loginError, setLoginError] = useState('');
+  const { success, error: showError } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoginError("")
+    e.preventDefault();
+    setLoginError('');
 
-    const result = await login(email, password)
-    
+    const result = await login(email, password);
+
     if (result.success) {
-      router.push("/")
+      router.push('/');
+      success('Login realizado com sucesso!', 'Bem-vindo');
     } else {
-      setLoginError(result.error || "Erro ao fazer login. Tente novamente.")
+      showError(result.error || 'Erro ao fazer login. Tente novamente.');
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -64,7 +67,9 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4">
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm md:text-base">Email</Label>
+                  <Label htmlFor="email" className="text-sm md:text-base">
+                    Email
+                  </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -81,12 +86,14 @@ export default function LoginPage() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm md:text-base">Senha</Label>
+                  <Label htmlFor="password" className="text-sm md:text-base">
+                    Senha
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Digite sua senha"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -135,7 +142,7 @@ export default function LoginPage() {
                       <span>Entrando...</span>
                     </div>
                   ) : (
-                    "Entrar"
+                    'Entrar'
                   )}
                 </Button>
               </form>
@@ -178,7 +185,7 @@ export default function LoginPage() {
               {/* Sign Up Link */}
               <div className="text-center mt-4 md:mt-6">
                 <p className="text-sm text-gray-600">
-                  Não tem uma conta?{" "}
+                  Não tem uma conta?{' '}
                   <Link href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
                     Cadastre-se
                   </Link>
@@ -194,5 +201,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

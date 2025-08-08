@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import ImageSlider from '@/components/image-slider';
 import { apiService } from '@/lib/api';
+import { useToast } from '@/contexts/toast-context';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
+  const { success, error: showError } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,13 +40,13 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      alert('As senhas não coincidem!');
+      showError('As senhas não coincidem!');
       setIsLoading(false);
       return;
     }
 
     if (!acceptTerms) {
-      alert('Você deve aceitar os termos e condições!');
+      showError('Você deve aceitar os termos e condições!');
       setIsLoading(false);
       return;
     }
@@ -52,10 +54,10 @@ export default function RegisterPage() {
     const response = await apiService.createUser(formData);
 
     if (response.success) {
-      console.log('Usuário criado:', response.data);
+      success('Usuário criado com sucesso!');
       router.push('/');
     } else {
-      console.error('Erro ao criar usuário:', response.error);
+      showError(response.error || 'Erro ao criar usuário. Tente novamente.');
     }
 
     setIsLoading(false);

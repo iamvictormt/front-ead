@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { SidebarProvider } from '@/contexts/sidebar-context';
+import { ToastProvider } from '@/contexts/toast-context';
 
 export const metadata: Metadata = {
   title: 'Plataforma EAD',
@@ -24,7 +25,9 @@ html {
       </head>
       <body>
         <AuthProvider>
-          <SidebarProvider>{children}</SidebarProvider>
+          <ToastProvider>
+            <SidebarProvider>{children}</SidebarProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
