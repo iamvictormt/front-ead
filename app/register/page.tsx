@@ -131,7 +131,7 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Phone Field */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm md:text-base">
                     Telefone
                   </Label>
@@ -147,7 +147,7 @@ export default function RegisterPage() {
                       className="pl-10 h-10 md:h-12 text-sm md:text-base"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {/* Password Field */}
                 <div className="space-y-2">
