@@ -1,116 +1,140 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState } from "react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Search, Play, BookOpen, Clock, Award, Filter } from 'lucide-react'
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Search, Play, BookOpen, Clock, Award, Filter } from 'lucide-react';
+import clsx from 'clsx';
+import { useSidebar } from '@/contexts/sidebar-context';
 
 export default function MeusCursosPage() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState("todos")
-  const { user } = useAuth()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('todos');
+  const { user } = useAuth();
 
-  const contentMargin = `md:${isSidebarCollapsed ? "ml-22" : "ml-72"}`
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isSidebarCollapsed,
+    'md:ml-80': !isSidebarCollapsed,
+  });
 
   // Mock data para cursos do aluno
   const meusCursos = [
     {
       id: 1,
-      titulo: "React Fundamentals",
-      instrutor: "João Silva",
+      titulo: 'React Fundamentals',
+      instrutor: 'João Silva',
       progresso: 75,
-      duracaoTotal: "8h 30min",
-      duracaoAssistida: "6h 22min",
-      ultimaAula: "Hooks Avançados",
-      status: "Em Progresso",
-      categoria: "Frontend",
+      duracaoTotal: '8h 30min',
+      duracaoAssistida: '6h 22min',
+      ultimaAula: 'Hooks Avançados',
+      status: 'Em Progresso',
+      categoria: 'Frontend',
       certificado: false,
-      dataInicio: "2024-01-15",
-      proximaAula: "Context API"
+      dataInicio: '2024-01-15',
+      proximaAula: 'Context API',
     },
     {
       id: 2,
-      titulo: "JavaScript Avançado",
-      instrutor: "Maria Santos",
+      titulo: 'JavaScript Avançado',
+      instrutor: 'Maria Santos',
       progresso: 100,
-      duracaoTotal: "6h 45min",
-      duracaoAssistida: "6h 45min",
-      ultimaAula: "Async/Await Patterns",
-      status: "Concluído",
-      categoria: "Frontend",
+      duracaoTotal: '6h 45min',
+      duracaoAssistida: '6h 45min',
+      ultimaAula: 'Async/Await Patterns',
+      status: 'Concluído',
+      categoria: 'Frontend',
       certificado: true,
-      dataInicio: "2023-12-01",
-      dataConclusao: "2024-01-10"
+      dataInicio: '2023-12-01',
+      dataConclusao: '2024-01-10',
     },
     {
       id: 3,
-      titulo: "Node.js Backend Development",
-      instrutor: "Pedro Costa",
+      titulo: 'Node.js Backend Development',
+      instrutor: 'Pedro Costa',
       progresso: 25,
-      duracaoTotal: "12h 15min",
-      duracaoAssistida: "3h 04min",
-      ultimaAula: "Express.js Básico",
-      status: "Em Progresso",
-      categoria: "Backend",
+      duracaoTotal: '12h 15min',
+      duracaoAssistida: '3h 04min',
+      ultimaAula: 'Express.js Básico',
+      status: 'Em Progresso',
+      categoria: 'Backend',
       certificado: false,
-      dataInicio: "2024-02-01",
-      proximaAula: "Middleware e Rotas"
+      dataInicio: '2024-02-01',
+      proximaAula: 'Middleware e Rotas',
     },
     {
       id: 4,
-      titulo: "Python para Data Science",
-      instrutor: "Ana Oliveira",
+      titulo: 'Python para Data Science',
+      instrutor: 'Ana Oliveira',
       progresso: 0,
-      duracaoTotal: "15h 20min",
-      duracaoAssistida: "0h 00min",
+      duracaoTotal: '15h 20min',
+      duracaoAssistida: '0h 00min',
       ultimaAula: null,
-      status: "Não Iniciado",
-      categoria: "Data Science",
+      status: 'Não Iniciado',
+      categoria: 'Data Science',
       certificado: false,
-      dataInicio: "2024-02-15",
-      proximaAula: "Introdução ao Python"
-    }
-  ]
+      dataInicio: '2024-02-15',
+      proximaAula: 'Introdução ao Python',
+    },
+  ];
 
-  const filteredCursos = meusCursos.filter(curso => {
-    const matchesSearch = curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         curso.instrutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         curso.categoria.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesFilter = filterStatus === "todos" || 
-                         (filterStatus === "em-progresso" && curso.status === "Em Progresso") ||
-                         (filterStatus === "concluidos" && curso.status === "Concluído") ||
-                         (filterStatus === "nao-iniciados" && curso.status === "Não Iniciado")
-    
-    return matchesSearch && matchesFilter
-  })
+  const filteredCursos = meusCursos.filter((curso) => {
+    const matchesSearch =
+      curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      curso.instrutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      curso.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      filterStatus === 'todos' ||
+      (filterStatus === 'em-progresso' && curso.status === 'Em Progresso') ||
+      (filterStatus === 'concluidos' && curso.status === 'Concluído') ||
+      (filterStatus === 'nao-iniciados' && curso.status === 'Não Iniciado');
+
+    return matchesSearch && matchesFilter;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Concluído": return "bg-green-100 text-green-800"
-      case "Em Progresso": return "bg-blue-100 text-blue-800"
-      case "Não Iniciado": return "bg-gray-100 text-gray-800"
-      default: return "bg-gray-100 text-gray-800"
+      case 'Concluído':
+        return 'bg-green-100 text-green-800';
+      case 'Em Progresso':
+        return 'bg-blue-100 text-blue-800';
+      case 'Não Iniciado':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
-        
-        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
+
+        <div className={contentMargin}>
           {/* Header */}
-          <header className="bg-white shadow-sm border-b">
-            <div className="px-4 md:px-6 py-4">
-              <div className="flex items-center space-x-4">
-                <h1 className="text-xl md:text-2xl font-semibold text-gray-900 ml-12 md:ml-0">Meus Cursos</h1>
+          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+            <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
+                    Meus Cursos
+                  </h1>
+                </div>
+                <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="text-xs md:text-sm text-white md:text-gray-900 hidden sm:block">
+                    Bem-vindo, {user?.name}!
+                  </div>
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.name?.charAt(0)}
+                  </div>
+                </div>
               </div>
             </div>
           </header>
@@ -118,7 +142,7 @@ export default function MeusCursosPage() {
           {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
-              <div className="max-w-7xl mx-auto">
+              <div className="mx-auto">
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
                   <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
@@ -141,7 +165,7 @@ export default function MeusCursosPage() {
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600">Concluídos</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos.filter(c => c.status === 'Concluído').length}
+                          {meusCursos.filter((c) => c.status === 'Concluído').length}
                         </p>
                       </div>
                     </div>
@@ -155,7 +179,7 @@ export default function MeusCursosPage() {
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600">Em Progresso</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos.filter(c => c.status === 'Em Progresso').length}
+                          {meusCursos.filter((c) => c.status === 'Em Progresso').length}
                         </p>
                       </div>
                     </div>
@@ -169,10 +193,13 @@ export default function MeusCursosPage() {
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600">Horas Estudadas</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos.reduce((acc, curso) => {
-                            const horas = parseFloat(curso.duracaoAssistida.split('h')[0])
-                            return acc + horas
-                          }, 0).toFixed(0)}h
+                          {meusCursos
+                            .reduce((acc, curso) => {
+                              const horas = parseFloat(curso.duracaoAssistida.split('h')[0]);
+                              return acc + horas;
+                            }, 0)
+                            .toFixed(0)}
+                          h
                         </p>
                       </div>
                     </div>
@@ -192,31 +219,31 @@ export default function MeusCursosPage() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant={filterStatus === "todos" ? "default" : "outline"} 
+                      <Button
+                        variant={filterStatus === 'todos' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFilterStatus("todos")}
+                        onClick={() => setFilterStatus('todos')}
                       >
                         Todos
                       </Button>
-                      <Button 
-                        variant={filterStatus === "em-progresso" ? "default" : "outline"} 
+                      <Button
+                        variant={filterStatus === 'em-progresso' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFilterStatus("em-progresso")}
+                        onClick={() => setFilterStatus('em-progresso')}
                       >
                         Em Progresso
                       </Button>
-                      <Button 
-                        variant={filterStatus === "concluidos" ? "default" : "outline"} 
+                      <Button
+                        variant={filterStatus === 'concluidos' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFilterStatus("concluidos")}
+                        onClick={() => setFilterStatus('concluidos')}
                       >
                         Concluídos
                       </Button>
-                      <Button 
-                        variant={filterStatus === "nao-iniciados" ? "default" : "outline"} 
+                      <Button
+                        variant={filterStatus === 'nao-iniciados' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFilterStatus("nao-iniciados")}
+                        onClick={() => setFilterStatus('nao-iniciados')}
                       >
                         Não Iniciados
                       </Button>
@@ -235,11 +262,9 @@ export default function MeusCursosPage() {
                               <h3 className="text-lg font-semibold text-gray-900 mb-1">{curso.titulo}</h3>
                               <p className="text-sm text-gray-600">Instrutor: {curso.instrutor}</p>
                             </div>
-                            <Badge className={getStatusColor(curso.status)}>
-                              {curso.status}
-                            </Badge>
+                            <Badge className={getStatusColor(curso.status)}>{curso.status}</Badge>
                           </div>
-                          
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                             <div className="text-sm">
                               <span className="text-gray-500">Progresso:</span>
@@ -250,7 +275,9 @@ export default function MeusCursosPage() {
                             </div>
                             <div className="text-sm">
                               <span className="text-gray-500">Duração:</span>
-                              <p className="font-medium">{curso.duracaoAssistida} / {curso.duracaoTotal}</p>
+                              <p className="font-medium">
+                                {curso.duracaoAssistida} / {curso.duracaoTotal}
+                              </p>
                             </div>
                             <div className="text-sm">
                               <span className="text-gray-500">Categoria:</span>
@@ -274,12 +301,12 @@ export default function MeusCursosPage() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-2 lg:flex-col lg:w-48">
-                          {curso.status === "Não Iniciado" ? (
+                          {curso.status === 'Não Iniciado' ? (
                             <Button className="bg-blue-600 hover:bg-blue-700">
                               <Play className="w-4 h-4 mr-2" />
                               Iniciar Curso
                             </Button>
-                          ) : curso.status === "Concluído" ? (
+                          ) : curso.status === 'Concluído' ? (
                             <div className="space-y-2">
                               <Button variant="outline" className="w-full">
                                 <BookOpen className="w-4 h-4 mr-2" />
@@ -319,5 +346,5 @@ export default function MeusCursosPage() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

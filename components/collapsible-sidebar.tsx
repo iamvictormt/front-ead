@@ -1,26 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Box,
-  LayoutGrid,
-  FileText,
-  Users,
-  MessageCircle,
-  Calendar,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  X,
-  BookOpen,
-  ShoppingCart,
-  User,
-} from 'lucide-react';
+import { Box, LayoutGrid, ChevronLeft, ChevronRight, Menu, X, BookOpen, ShoppingCart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
+import { useSidebar } from '@/contexts/sidebar-context';
 
 interface SidebarProps {
   className?: string;
@@ -28,8 +14,7 @@ interface SidebarProps {
 }
 
 export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -50,12 +35,12 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
   };
 
   React.useEffect(() => {
-  if (isMobileOpen) {
-    document.body.style.overflow = "hidden"; // trava o scroll
-  } else {
-    document.body.style.overflow = ""; // volta ao normal
-  }
-}, [isMobileOpen]);
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'; // trava o scroll
+    } else {
+      document.body.style.overflow = ''; // volta ao normal
+    }
+  }, [isMobileOpen]);
 
   // Menu items baseado no role do usuário
   const getMenuItems = () => {
@@ -99,7 +84,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black opacity-90 z-40 md:hidden" onClick={() => setIsMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black opacity-90 z-41 md:hidden" onClick={() => setIsMobileOpen(false)} />
       )}
 
       {/* Desktop Sidebar */}
@@ -144,8 +129,8 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 key={item.id}
                 onClick={() => handleNavigation(item.path)}
                 className={cn(
-                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200',
-                  isActive ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer',
+                  isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white',
                   isCollapsed ? 'justify-center' : 'justify-start'
                 )}
                 title={isCollapsed ? item.label : undefined}
@@ -256,8 +241,8 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 key={item.id}
                 onClick={() => handleNavigation(item.path)}
                 className={cn(
-                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200',
-                  isActive ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer justify-start',
+                  isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white',
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />

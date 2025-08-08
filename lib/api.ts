@@ -58,6 +58,12 @@ interface MyCourse extends Course {
   dataConclusao?: string;
 }
 
+interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 class ApiService {
   private baseURL: string;
   private token: string | null = null;
@@ -138,13 +144,20 @@ class ApiService {
     return response;
   }
 
+  async createUser(data: CreateUserRequest): Promise<ApiResponse<User>> {
+    return this.request<User>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getProfile(): Promise<ApiResponse<User>> {
     return this.request<User>('/auth/profile');
   }
 
   async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request<User>('/auth/profile', {
-      method: 'PUT',
+    return this.request<User>('/users', {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }

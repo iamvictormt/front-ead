@@ -5,9 +5,11 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import clsx from 'clsx';
+import { useSidebar } from '@/contexts/sidebar-context';
 
 export default function AlunoDashboard() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
   const { user } = useAuth();
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
@@ -22,14 +24,18 @@ export default function AlunoDashboard() {
 
         <div className={contentMargin}>
           {/* Header */}
-          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 z-auto mb-6 md:mb-8">
+          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">Meus Cursos</h1>
+                  <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
+                    Dashboard
+                  </h1>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-4">
-                  <div className="text-xs md:text-sm text-white md:text-gray-900 hidden sm:block">Bem-vindo, {user?.name}!</div>
+                  <div className="text-xs md:text-sm text-white md:text-gray-900 hidden sm:block">
+                    Bem-vindo, {user?.name}!
+                  </div>
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {user?.name?.charAt(0)}
                   </div>

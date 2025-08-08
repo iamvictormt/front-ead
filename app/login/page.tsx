@@ -126,7 +126,7 @@ export default function LoginPage() {
                 {/* Login Button */}
                 <Button
                   type="submit"
-                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base"
+                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -147,17 +147,17 @@ export default function LoginPage() {
               )}
 
               {/* Divider */}
-              <div className="relative my-4 md:my-6">
+              {/* <div className="relative my-4 md:my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white text-gray-500">ou continue com</span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Social Login Buttons */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="h-10 md:h-12 text-sm">
                   <svg className="w-4 h-4 md:w-5 md:h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -173,7 +173,7 @@ export default function LoginPage() {
                   </svg>
                   <span className="hidden sm:inline">Facebook</span>
                 </Button>
-              </div>
+              </div> */}
 
               {/* Sign Up Link */}
               <div className="text-center mt-4 md:mt-6">
@@ -189,7 +189,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="text-center mt-6 md:mt-8 text-xs md:text-sm text-gray-500">
-            <p>© 2024 Sua Empresa. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} Nome da empresa. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>

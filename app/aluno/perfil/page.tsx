@@ -1,107 +1,121 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState } from "react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, MapPin, Calendar, Award, Settings, Camera, Save, Edit } from 'lucide-react'
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { User, Mail, Phone, MapPin, Calendar, Award, Settings, Camera, Save, Edit } from 'lucide-react';
+import clsx from 'clsx';
+import { useSidebar } from '@/contexts/sidebar-context';
 
 export default function PerfilPage() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const { user } = useAuth()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
+  const [isEditing, setIsEditing] = useState(false);
+  const { user, updateProfile } = useAuth();
 
-  const contentMargin = `md:${isSidebarCollapsed ? "ml-22" : "ml-72"}`
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isSidebarCollapsed,
+    'md:ml-80': !isSidebarCollapsed,
+  });
 
   // Mock data para perfil do usuário
   const [profileData, setProfileData] = useState({
-    nome: user?.name || "Maria Santos",
-    email: user?.email || "aluno@test.com",
-    telefone: "(11) 99999-9999",
-    cidade: "São Paulo, SP",
-    dataNascimento: "1995-03-15",
-    bio: "Desenvolvedora Frontend apaixonada por tecnologia e aprendizado contínuo.",
-    linkedin: "https://linkedin.com/in/mariasantos",
-    github: "https://github.com/mariasantos",
-    website: "https://mariasantos.dev"
-  })
+    nome: user?.name || 'Maria Santos',
+    email: user?.email || 'aluno@test.com',
+    telefone: '(11) 99999-9999',
+    cidade: 'São Paulo, SP',
+    dataNascimento: '1995-03-15',
+    bio: 'Desenvolvedora Frontend apaixonada por tecnologia e aprendizado contínuo.',
+    linkedin: 'https://linkedin.com/in/mariasantos',
+    github: 'https://github.com/mariasantos',
+    website: 'https://mariasantos.dev',
+  });
 
   const conquistas = [
     {
       id: 1,
-      titulo: "Primeiro Curso Concluído",
-      descricao: "Completou seu primeiro curso na plataforma",
-      data: "2024-01-10",
-      icone: "🎓"
+      titulo: 'Primeiro Curso Concluído',
+      descricao: 'Completou seu primeiro curso na plataforma',
+      data: '2024-01-10',
+      icone: '🎓',
     },
     {
       id: 2,
-      titulo: "Estudante Dedicado",
-      descricao: "Completou 20+ horas de estudo",
-      data: "2024-01-25",
-      icone: "📚"
+      titulo: 'Estudante Dedicado',
+      descricao: 'Completou 20+ horas de estudo',
+      data: '2024-01-25',
+      icone: '📚',
     },
     {
       id: 3,
-      titulo: "Meta Semanal",
-      descricao: "Completou 5 lições em uma semana",
-      data: "2024-02-01",
-      icone: "🎯"
-    }
-  ]
+      titulo: 'Meta Semanal',
+      descricao: 'Completou 5 lições em uma semana',
+      data: '2024-02-01',
+      icone: '🎯',
+    },
+  ];
 
   const certificados = [
     {
       id: 1,
-      curso: "JavaScript Avançado",
-      instrutor: "Maria Santos",
-      dataEmissao: "2024-01-10",
-      credencial: "JS-ADV-2024-001"
+      curso: 'JavaScript Avançado',
+      instrutor: 'Maria Santos',
+      dataEmissao: '2024-01-10',
+      credencial: 'JS-ADV-2024-001',
     },
     {
       id: 2,
-      curso: "React Fundamentals",
-      instrutor: "João Silva",
-      dataEmissao: "2024-02-15",
-      credencial: "REACT-FUND-2024-002"
-    }
-  ]
+      curso: 'React Fundamentals',
+      instrutor: 'João Silva',
+      dataEmissao: '2024-02-15',
+      credencial: 'REACT-FUND-2024-002',
+    },
+  ];
 
-  const handleSave = () => {
-    // Aqui você salvaria os dados no backend
-    setIsEditing(false)
-    // Simular salvamento
-    console.log("Dados salvos:", profileData)
-  }
+  const handleSave = async () => {
+    const result = await updateProfile({
+      name: profileData.nome,
+      email: profileData.email,
+    });
+
+    if (result.success) {
+      setIsEditing(false);
+    } else {
+      console.error(result.error);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
-        
-        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
+
+        <div className={contentMargin}>
           {/* Header */}
-          <header className="bg-white shadow-sm border-b">
-            <div className="px-4 md:px-6 py-4">
+          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+            <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl md:text-2xl font-semibold text-gray-900 ml-12 md:ml-0">Meu Perfil</h1>
+                <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
+                  Meu Perfil
+                </h1>
                 <Button
-                  onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                  className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+                  onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+                  className={isEditing ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}
                 >
                   {isEditing ? (
                     <>
@@ -122,9 +136,9 @@ export default function PerfilPage() {
           {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
-              <div className="max-w-4xl mx-auto">
-                <Tabs defaultValue="perfil" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-3">
+              <div className="mx-auto">
+                <Tabs defaultValue="perfil" className="md:space-y-8 space-y-20">
+                  <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 space-y-2">
                     <TabsTrigger value="perfil">Informações Pessoais</TabsTrigger>
                     <TabsTrigger value="conquistas">Conquistas</TabsTrigger>
                     <TabsTrigger value="certificados">Certificados</TabsTrigger>
@@ -140,7 +154,10 @@ export default function PerfilPage() {
                             <Avatar className="w-24 h-24">
                               <AvatarImage src="/placeholder.svg?height=96&width=96" />
                               <AvatarFallback className="text-2xl">
-                                {profileData.nome.split(' ').map(n => n[0]).join('')}
+                                {profileData.nome
+                                  .split(' ')
+                                  .map((n) => n[0])
+                                  .join('')}
                               </AvatarFallback>
                             </Avatar>
                             {isEditing && (
@@ -162,9 +179,7 @@ export default function PerfilPage() {
                     <Card>
                       <CardHeader>
                         <CardTitle>Informações Pessoais</CardTitle>
-                        <CardDescription>
-                          Gerencie suas informações pessoais e de contato
-                        </CardDescription>
+                        <CardDescription>Gerencie suas informações pessoais e de contato</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -236,7 +251,7 @@ export default function PerfilPage() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="bio">Biografia</Label>
                           <textarea
@@ -293,9 +308,7 @@ export default function PerfilPage() {
                           <Award className="w-5 h-5 mr-2" />
                           Suas Conquistas
                         </CardTitle>
-                        <CardDescription>
-                          Acompanhe seu progresso e conquistas na plataforma
-                        </CardDescription>
+                        <CardDescription>Acompanhe seu progresso e conquistas na plataforma</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -324,25 +337,24 @@ export default function PerfilPage() {
                           <Award className="w-5 h-5 mr-2" />
                           Meus Certificados
                         </CardTitle>
-                        <CardDescription>
-                          Certificados dos cursos que você concluiu
-                        </CardDescription>
+                        <CardDescription>Certificados dos cursos que você concluiu</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           {certificados.map((certificado) => (
-                            <div key={certificado.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                            <div
+                              key={certificado.id}
+                              className="block md:flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                            >
                               <div className="flex-1">
                                 <h3 className="font-semibold text-gray-900">{certificado.curso}</h3>
                                 <p className="text-sm text-gray-600">Instrutor: {certificado.instrutor}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                   Emitido em {new Date(certificado.dataEmissao).toLocaleDateString('pt-BR')}
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                  Credencial: {certificado.credencial}
-                                </p>
+                                <p className="text-xs text-gray-500">Credencial: {certificado.credencial}</p>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 md:mt-0 mt-3">
                                 <Button size="sm" variant="outline">
                                   Visualizar
                                 </Button>
@@ -353,7 +365,7 @@ export default function PerfilPage() {
                             </div>
                           ))}
                         </div>
-                        
+
                         {certificados.length === 0 && (
                           <div className="text-center py-8">
                             <Award className="w-12 h-12 mx-auto text-gray-400 mb-4" />
@@ -371,5 +383,5 @@ export default function PerfilPage() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

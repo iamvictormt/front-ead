@@ -1,61 +1,65 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react'
-import ImageSlider from "@/components/image-slider"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import ImageSlider from '@/components/image-slider';
+import { apiService } from '@/lib/api';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: ""
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [acceptTerms, setAcceptTerms] = useState(false)
-  const router = useRouter()
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      alert("As senhas não coincidem!")
-      setIsLoading(false)
-      return
+      alert('As senhas não coincidem!');
+      setIsLoading(false);
+      return;
     }
 
     if (!acceptTerms) {
-      alert("Você deve aceitar os termos e condições!")
-      setIsLoading(false)
-      return
+      alert('Você deve aceitar os termos e condições!');
+      setIsLoading(false);
+      return;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    const response = await apiService.createUser(formData);
 
-    if (formData.name && formData.email && formData.password) {
-      router.push("/")
+    if (response.success) {
+      console.log('Usuário criado:', response.data);
+      router.push('/');
+    } else {
+      console.error('Erro ao criar usuário:', response.error);
     }
 
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -88,7 +92,9 @@ export default function RegisterPage() {
               <form onSubmit={handleRegister} className="space-y-4">
                 {/* Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm md:text-base">Nome completo</Label>
+                  <Label htmlFor="name" className="text-sm md:text-base">
+                    Nome completo
+                  </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -106,7 +112,9 @@ export default function RegisterPage() {
 
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm md:text-base">Email</Label>
+                  <Label htmlFor="email" className="text-sm md:text-base">
+                    Email
+                  </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -124,7 +132,9 @@ export default function RegisterPage() {
 
                 {/* Phone Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm md:text-base">Telefone</Label>
+                  <Label htmlFor="phone" className="text-sm md:text-base">
+                    Telefone
+                  </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -141,13 +151,15 @@ export default function RegisterPage() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm md:text-base">Senha</Label>
+                  <Label htmlFor="password" className="text-sm md:text-base">
+                    Senha
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Digite sua senha"
                       value={formData.password}
                       onChange={handleInputChange}
@@ -166,13 +178,15 @@ export default function RegisterPage() {
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm md:text-base">Confirmar senha</Label>
+                  <Label htmlFor="confirmPassword" className="text-sm md:text-base">
+                    Confirmar senha
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirme sua senha"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
@@ -199,11 +213,11 @@ export default function RegisterPage() {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
                   />
                   <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
-                    Eu aceito os{" "}
+                    Eu aceito os{' '}
                     <button type="button" className="text-blue-600 hover:text-blue-800 font-medium">
                       Termos de Uso
-                    </button>{" "}
-                    e a{" "}
+                    </button>{' '}
+                    e a{' '}
                     <button type="button" className="text-blue-600 hover:text-blue-800 font-medium">
                       Política de Privacidade
                     </button>
@@ -222,23 +236,23 @@ export default function RegisterPage() {
                       <span>Criando conta...</span>
                     </div>
                   ) : (
-                    "Criar conta"
+                    'Criar conta'
                   )}
                 </Button>
               </form>
 
               {/* Divider */}
-              <div className="relative my-4 md:my-6">
+              {/* <div className="relative my-4 md:my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white text-gray-500">ou cadastre-se com</span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Social Register Buttons */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" className="h-10 md:h-12 text-sm">
                   <svg className="w-4 h-4 md:w-5 md:h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -254,12 +268,12 @@ export default function RegisterPage() {
                   </svg>
                   <span className="hidden sm:inline">Facebook</span>
                 </Button>
-              </div>
+              </div> */}
 
               {/* Login Link */}
               <div className="text-center mt-4 md:mt-6">
                 <p className="text-sm text-gray-600">
-                  Já tem uma conta?{" "}
+                  Já tem uma conta?{' '}
                   <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
                     Faça login
                   </Link>
@@ -270,10 +284,10 @@ export default function RegisterPage() {
 
           {/* Footer */}
           <div className="text-center mt-6 md:mt-8 text-xs md:text-sm text-gray-500">
-            <p>© 2024 Sua Empresa. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} Nome da empresa. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
