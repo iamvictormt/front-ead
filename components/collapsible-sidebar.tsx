@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Box, LayoutGrid, ChevronLeft, ChevronRight, Menu, X, BookOpen, ShoppingCart, User } from 'lucide-react';
+import { Box, LayoutGrid, ChevronLeft, ChevronRight, Menu, X, BookOpen, ShoppingCart, User, NotebookText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
@@ -107,7 +107,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
         {/* Logo/Brand */}
         <div className="flex items-center justify-center h-16 px-4">
-          {/* <Box className="h-6 w-6 text-white" /> */}
+          <NotebookText className="h-6 w-6 text-white" />
           {!isCollapsed && (
             <div className="ml-3">
               <span className="text-lg font-semibold">LOGO</span>
@@ -168,7 +168,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
               </div>
               <button
                 onClick={logout}
-                className="w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 mt-2"
+                className="w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 mt-2 cursor-pointer"
               >
                 <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -212,7 +212,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
         {/* Logo/Brand */}
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center">
-            {/* <Box className="h-6 w-6 text-white" /> */}
+            <NotebookText className="h-6 w-6 text-white" />
             <div className="ml-3">
               <span className="text-lg font-semibold">LOGO</span>
               <div className="text-xs text-gray-400">
