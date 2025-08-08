@@ -64,7 +64,7 @@ export default function ImageSlider() {
       />
       
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/80 to-purple-700/80" />
+      <div className="absolute inset-0 bg-black/7" />
 
       {/* Pattern Overlay */}
       <div className="absolute inset-0 opacity-10">
@@ -88,13 +88,13 @@ export default function ImageSlider() {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
+          className="absolute left-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm cursor-pointer"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
+          className="absolute right-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm cursor-pointer"
         >
           <ChevronRight className="w-6 h-6" />
         </button>

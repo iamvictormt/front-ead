@@ -73,8 +73,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           {/* Logo/Brand */}
           <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-[#2D2D2D] rounded-2xl mb-3 md:mb-4">
-              <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-lg"></div>
+            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl mb-3 md:mb-4">
+              <span className="text-2xl">LOGO</span>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Crie sua conta</h1>
             <p className="text-gray-600 mt-2 text-sm md:text-base">Junte-se a nós e comece sua jornada</p>
@@ -82,12 +82,12 @@ export default function RegisterPage() {
 
           {/* Register Card */}
           <Card className="shadow-xl border-0">
-            <CardHeader className="space-y-1 pb-4 md:pb-6">
+            {/* <CardHeader className="space-y-1 pb-4 md:pb-6">
               <CardTitle className="text-xl md:text-2xl font-semibold text-center">Cadastro</CardTitle>
               <CardDescription className="text-center text-sm md:text-base">
                 Preencha os dados abaixo para criar sua conta
               </CardDescription>
-            </CardHeader>
+            </CardHeader> */}
             <CardContent className="px-4 md:px-6">
               <form onSubmit={handleRegister} className="space-y-4">
                 {/* Name Field */}
@@ -227,7 +227,7 @@ export default function RegisterPage() {
                 {/* Register Button */}
                 <Button
                   type="submit"
-                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base"
+                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
                   disabled={isLoading}
                 >
                   {isLoading ? (
