@@ -43,25 +43,67 @@ interface Course {
   status: string;
   promocao: boolean;
   bestseller: boolean;
-  thumbnail?: string;
+  thumbnailUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-interface MyCourse extends Course {
-  progresso: number;
-  duracaoAssistida: string;
-  ultimaAula?: string;
-  proximaAula?: string;
-  certificado: boolean;
-  dataInicio: string;
-  dataConclusao?: string;
+interface Module {
+  id: number;
+  title: string;
+  order: number;
+  lessons: Lesson[];
 }
 
-interface CreateUserRequest {
-  name: string;
-  email: string;
-  password: string;
+interface Lesson {
+  id: number;
+  title: string;
+  videoUrl: string;
+  pdfUrl?: string;
+  order: number;
+  completed: boolean;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  userId: number;
+  lessonId: number;
+  userName: string;
+  createdAt: string;
+}
+
+interface Progress {
+  id: number;
+  userId: number;
+  courseId: number;
+  completedLessons: number;
+  totalLessons: number;
+  updatedAt: string;
+}
+
+interface Certificate {
+  id: number;
+  url: string;
+  issuedAt: string;
+}
+
+interface MyCourse {
+  id: number;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  instructor: string;
+  price: number;
+  pricePaid: number;
+  purchaseDate: string;
+  status: string;
+  category: string;
+  progress: Progress;
+  modules: Module[];
+  certificate?: Certificate;
+  rating: number;
+  studentsCount: number;
 }
 
 class ApiService {
@@ -144,20 +186,13 @@ class ApiService {
     return response;
   }
 
-  async createUser(data: CreateUserRequest): Promise<ApiResponse<User>> {
-    return this.request<User>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async getProfile(): Promise<ApiResponse<User>> {
     return this.request<User>('/auth/profile');
   }
 
   async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request<User>('/users', {
-      method: 'PATCH',
+    return this.request<User>('/auth/profile', {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   }
@@ -219,7 +254,7 @@ class ApiService {
     if (params?.limit) searchParams.append('limit', params.limit.toString());
 
     const queryString = searchParams.toString();
-    const endpoint = `/student/courses${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/courses/my-courses${queryString ? `?${queryString}` : ''}`;
 
     return this.request(endpoint);
   }
@@ -317,7 +352,48 @@ class ApiService {
       body: JSON.stringify(settings),
     });
   }
+
+  // New methods
+  async getCourseDetails(courseId: string): Promise<ApiResponse<MyCourse>> {
+    return this.request<MyCourse>(`/courses/my-courses/${courseId}`);
+  }
+
+  async getLessonComments(lessonId: number): Promise<ApiResponse<Comment[]>> {
+    return this.request<Comment[]>(`/lessons/${lessonId}/comments`);
+  }
+
+  async addLessonComment(lessonId: number, content: string): Promise<ApiResponse<Comment>> {
+    return this.request<Comment>(`/lessons/${lessonId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async updateLessonProgress(courseId: number, lessonId: number, completed: boolean): Promise<ApiResponse> {
+    return this.request(`/courses/my-courses/${courseId}/lessons/${lessonId}/complete`, {
+      method: 'PATCH',
+      body: JSON.stringify({ completed }),
+    });
+  }
+
+  async generateCertificate(courseId: string): Promise<ApiResponse<Certificate>> {
+    return this.request<Certificate>(`/courses/${courseId}/certificate`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiService = new ApiService();
-export type { ApiResponse, LoginRequest, LoginResponse, User, Course, MyCourse };
+export type {
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
+  User,
+  Course,
+  Module,
+  Lesson,
+  Comment,
+  Progress,
+  Certificate,
+  MyCourse,
+};

@@ -2,99 +2,74 @@
 
 import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
 import { ProtectedRoute } from '@/components/protected-route';
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Search, Play, BookOpen, Clock, Award, Filter } from 'lucide-react';
-import clsx from 'clsx';
+import { Card, CardContent } from '@/components/ui/card';
+import { apiService, type MyCourse } from '@/lib/api';
+import { Search, Play, BookOpen, Clock, Award, Users, Star, Loader2 } from 'lucide-react';
 import { useSidebar } from '@/contexts/sidebar-context';
+import clsx from 'clsx';
+import { useToast } from '@/contexts/toast-context';
+import { useRouter } from 'next/navigation';
 
 export default function MeusCursosPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { isCollapsed } = useSidebar();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
-  const { user } = useAuth();
+  const [meusCursos, setMeusCursos] = useState<MyCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { error: showError } = useToast();
+  const router = useRouter();
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isSidebarCollapsed,
     'md:ml-80': !isSidebarCollapsed,
   });
 
-  // Mock data para cursos do aluno
-  const meusCursos = [
-    {
-      id: 1,
-      titulo: 'React Fundamentals',
-      instrutor: 'João Silva',
-      progresso: 75,
-      duracaoTotal: '8h 30min',
-      duracaoAssistida: '6h 22min',
-      ultimaAula: 'Hooks Avançados',
-      status: 'Em Progresso',
-      categoria: 'Frontend',
-      certificado: false,
-      dataInicio: '2024-01-15',
-      proximaAula: 'Context API',
-    },
-    {
-      id: 2,
-      titulo: 'JavaScript Avançado',
-      instrutor: 'Maria Santos',
-      progresso: 100,
-      duracaoTotal: '6h 45min',
-      duracaoAssistida: '6h 45min',
-      ultimaAula: 'Async/Await Patterns',
-      status: 'Concluído',
-      categoria: 'Frontend',
-      certificado: true,
-      dataInicio: '2023-12-01',
-      dataConclusao: '2024-01-10',
-    },
-    {
-      id: 3,
-      titulo: 'Node.js Backend Development',
-      instrutor: 'Pedro Costa',
-      progresso: 25,
-      duracaoTotal: '12h 15min',
-      duracaoAssistida: '3h 04min',
-      ultimaAula: 'Express.js Básico',
-      status: 'Em Progresso',
-      categoria: 'Backend',
-      certificado: false,
-      dataInicio: '2024-02-01',
-      proximaAula: 'Middleware e Rotas',
-    },
-    {
-      id: 4,
-      titulo: 'Python para Data Science',
-      instrutor: 'Ana Oliveira',
-      progresso: 0,
-      duracaoTotal: '15h 20min',
-      duracaoAssistida: '0h 00min',
-      ultimaAula: null,
-      status: 'Não Iniciado',
-      categoria: 'Data Science',
-      certificado: false,
-      dataInicio: '2024-02-15',
-      proximaAula: 'Introdução ao Python',
-    },
-  ];
+  useEffect(() => {
+    loadMyCourses();
+  }, []);
+
+  const loadMyCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getMyCourses();
+      if (response.success && response.data) {
+        setMeusCursos(response.data.courses || []);
+      } else {
+        showError(response.error || 'Erro ao carregar cursos');
+      }
+    } catch (error) {
+      showError('Erro ao carregar cursos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openCourse = (courseId: string) => {
+    router.push(`/aluno/curso/${courseId}`);
+  };
 
   const filteredCursos = meusCursos.filter((curso) => {
     const matchesSearch =
-      curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.instrutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+      curso.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      curso.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const progressPercentage = curso.progress
+      ? (curso.progress.completedLessons / curso.progress.totalLessons) * 100
+      : 0;
+
+    const status = progressPercentage === 100 ? 'Concluído' : progressPercentage > 0 ? 'Em Progresso' : 'Não Iniciado';
 
     const matchesFilter =
       filterStatus === 'todos' ||
-      (filterStatus === 'em-progresso' && curso.status === 'Em Progresso') ||
-      (filterStatus === 'concluidos' && curso.status === 'Concluído') ||
-      (filterStatus === 'nao-iniciados' && curso.status === 'Não Iniciado');
+      (filterStatus === 'em-progresso' && status === 'Em Progresso') ||
+      (filterStatus === 'concluidos' && status === 'Concluído') ||
+      (filterStatus === 'nao-iniciados' && status === 'Não Iniciado');
 
     return matchesSearch && matchesFilter;
   });
@@ -112,29 +87,32 @@ export default function MeusCursosPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <ProtectedRoute allowedRoles={['STUDENT']}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Carregando cursos...</span>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
 
-        <div className={contentMargin}>
+        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           {/* Header */}
           <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
-                    Meus Cursos
-                  </h1>
-                </div>
-                <div className="flex items-center space-x-2 md:space-x-4">
-                  <div className="text-xs md:text-sm text-white md:text-gray-900 hidden sm:block">
-                    Bem-vindo, {user?.name}!
-                  </div>
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.name?.charAt(0)}
-                  </div>
-                </div>
+                <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
+                  Meus Cursos
+                </h1>
               </div>
             </div>
           </header>
@@ -144,7 +122,7 @@ export default function MeusCursosPage() {
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
                   <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
                     <div className="flex items-center">
                       <div className="p-2 bg-blue-100 rounded-lg">
@@ -165,7 +143,11 @@ export default function MeusCursosPage() {
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600">Concluídos</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos.filter((c) => c.status === 'Concluído').length}
+                          {
+                            meusCursos.filter(
+                              (c) => c.progress && c.progress.completedLessons / c.progress.totalLessons === 1
+                            ).length
+                          }
                         </p>
                       </div>
                     </div>
@@ -179,7 +161,14 @@ export default function MeusCursosPage() {
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600">Em Progresso</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos.filter((c) => c.status === 'Em Progresso').length}
+                          {
+                            meusCursos.filter(
+                              (c) =>
+                                c.progress &&
+                                c.progress.completedLessons > 0 &&
+                                c.progress.completedLessons / c.progress.totalLessons < 1
+                            ).length
+                          }
                         </p>
                       </div>
                     </div>
@@ -191,15 +180,9 @@ export default function MeusCursosPage() {
                         <Clock className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
                       </div>
                       <div className="ml-3 md:ml-4">
-                        <p className="text-xs md:text-sm font-medium text-gray-600">Horas Estudadas</p>
+                        <p className="text-xs md:text-sm font-medium text-gray-600">Certificados</p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {meusCursos
-                            .reduce((acc, curso) => {
-                              const horas = parseFloat(curso.duracaoAssistida.split('h')[0]);
-                              return acc + horas;
-                            }, 0)
-                            .toFixed(0)}
-                          h
+                          {meusCursos.filter((c) => c.certificate).length}
                         </p>
                       </div>
                     </div>
@@ -240,95 +223,91 @@ export default function MeusCursosPage() {
                       >
                         Concluídos
                       </Button>
-                      <Button
-                        variant={filterStatus === 'nao-iniciados' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setFilterStatus('nao-iniciados')}
-                      >
-                        Não Iniciados
-                      </Button>
                     </div>
                   </div>
                 </div>
 
-                {/* Courses List */}
-                <div className="space-y-4">
-                  {filteredCursos.map((curso) => (
-                    <div key={curso.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-1">{curso.titulo}</h3>
-                              <p className="text-sm text-gray-600">Instrutor: {curso.instrutor}</p>
-                            </div>
-                            <Badge className={getStatusColor(curso.status)}>{curso.status}</Badge>
-                          </div>
+                {/* Course Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredCursos.map((curso) => {
+                    const progressPercentage = curso.progress
+                      ? (curso.progress.completedLessons / curso.progress.totalLessons) * 100
+                      : 0;
+                    const status =
+                      progressPercentage === 100
+                        ? 'Concluído'
+                        : progressPercentage > 0
+                        ? 'Em Progresso'
+                        : 'Não Iniciado';
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            <div className="text-sm">
-                              <span className="text-gray-500">Progresso:</span>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <Progress value={curso.progresso} className="flex-1" />
-                                <span className="text-sm font-medium">{curso.progresso}%</span>
+                    return (
+                      <Card
+                        key={curso.id}
+                        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => openCourse(curso.id.toString())}
+                      >
+                        <div className="relative">
+                          <img
+                            src={curso.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
+                            alt={curso.title}
+                            className="w-full h-48 object-cover"
+                          />
+                          <Badge className={`absolute top-2 right-2 ${getStatusColor(status)}`}>{status}</Badge>
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div>
+                              <h3 className="font-semibold text-lg line-clamp-2">{curso.title}</h3>
+                              <p className="text-sm text-gray-600">por {curso.instructor || 'Instrutor'}</p>
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-yellow-500" />
+                                <span>{curso.rating || 0}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                <span>{curso.studentsCount || 0}</span>
                               </div>
                             </div>
-                            <div className="text-sm">
-                              <span className="text-gray-500">Duração:</span>
-                              <p className="font-medium">
-                                {curso.duracaoAssistida} / {curso.duracaoTotal}
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">Progresso</span>
+                                <span className="font-medium">{Math.round(progressPercentage)}%</span>
+                              </div>
+                              <Progress value={progressPercentage} className="h-2" />
+                              <p className="text-xs text-gray-500">
+                                {curso.progress?.completedLessons || 0} de {curso.progress?.totalLessons || 0} aulas
                               </p>
                             </div>
-                            <div className="text-sm">
-                              <span className="text-gray-500">Categoria:</span>
-                              <p className="font-medium">{curso.categoria}</p>
-                            </div>
-                          </div>
 
-                          {curso.ultimaAula && (
-                            <div className="text-sm mb-3">
-                              <span className="text-gray-500">Última aula:</span>
-                              <span className="font-medium ml-1">{curso.ultimaAula}</span>
-                            </div>
-                          )}
-
-                          {curso.proximaAula && (
-                            <div className="text-sm mb-3">
-                              <span className="text-gray-500">Próxima aula:</span>
-                              <span className="font-medium ml-1">{curso.proximaAula}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-2 lg:flex-col lg:w-48">
-                          {curso.status === 'Não Iniciado' ? (
-                            <Button className="bg-blue-600 hover:bg-blue-700">
-                              <Play className="w-4 h-4 mr-2" />
-                              Iniciar Curso
-                            </Button>
-                          ) : curso.status === 'Concluído' ? (
-                            <div className="space-y-2">
-                              <Button variant="outline" className="w-full">
-                                <BookOpen className="w-4 h-4 mr-2" />
-                                Revisar
-                              </Button>
-                              {curso.certificado && (
-                                <Button variant="outline" className="w-full">
-                                  <Award className="w-4 h-4 mr-2" />
-                                  Certificado
+                            <div className="flex gap-2 pt-2">
+                              {status === 'Concluído' ? (
+                                <>
+                                  <Button size="sm" variant="outline" className="flex-1 bg-transparent">
+                                    <BookOpen className="w-4 h-4 mr-1" />
+                                    Revisar
+                                  </Button>
+                                  {curso.certificate && (
+                                    <Button size="sm" variant="outline">
+                                      <Award className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </>
+                              ) : (
+                                <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                                  <Play className="w-4 h-4 mr-1" />
+                                  {status === 'Não Iniciado' ? 'Iniciar' : 'Continuar'}
                                 </Button>
                               )}
                             </div>
-                          ) : (
-                            <Button className="bg-blue-600 hover:bg-blue-700">
-                              <Play className="w-4 h-4 mr-2" />
-                              Continuar
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
 
                 {filteredCursos.length === 0 && (

@@ -186,7 +186,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
           {isCollapsed && (
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center px-3 py-3 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200"
+              className="w-full flex items-center justify-center px-3 py-3 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 cursor-pointer"
               title="Sair"
             >
               <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
