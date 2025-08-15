@@ -27,25 +27,40 @@ interface User {
   createdAt: string;
 }
 
+interface DashboardStats {
+  activeCourses: number;
+  completedCourses: number;
+  studyHours: number;
+  certificates: number;
+  totalProgress: number;
+}
+
 interface Course {
-  id: string;
-  titulo: string;
-  descricao: string;
-  instrutor: string;
-  preco: number;
-  precoOriginal?: number;
-  rating: number;
-  totalAvaliacoes: number;
-  alunos: number;
-  duracao: string;
-  categoria: string;
-  nivel: string;
+  id: number;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  instructor: string;
+  category: string;
+  price: number;
+  pricePaid: number;
+  purchaseDate: string;
   status: string;
-  promocao: boolean;
-  bestseller: boolean;
-  thumbnailUrl?: string;
-  createdAt: string;
-  updatedAt: string;
+  progress: {
+    completedLessons: number;
+    totalLessons: number;
+    percentage: number;
+  };
+  rating: number;
+  studentsCount: number;
+}
+
+interface RecentActivity {
+  type: string;
+  courseId: number;
+  lessonId?: number;
+  lessonTitle?: string;
+  certificateId?: number;
 }
 
 interface Module {
@@ -302,13 +317,12 @@ class ApiService {
 
   async getStudentStats(): Promise<
     ApiResponse<{
-      enrolledCourses: number;
-      completedCourses: number;
-      studyHours: number;
-      certificates: number;
+      stats: DashboardStats;
+      courses: Course[];
+      recentActivity: RecentActivity[];
     }>
   > {
-    return this.request('/student/stats');
+    return this.request('/dashboard/student');
   }
 
   // Achievements
@@ -353,7 +367,6 @@ class ApiService {
     });
   }
 
-  // New methods
   async getCourseDetails(courseId: string): Promise<ApiResponse<MyCourse>> {
     return this.request<MyCourse>(`/courses/my-courses/${courseId}`);
   }
@@ -396,4 +409,6 @@ export type {
   Progress,
   Certificate,
   MyCourse,
+  DashboardStats,
+  RecentActivity,
 };

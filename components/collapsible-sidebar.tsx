@@ -1,7 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { Box, LayoutGrid, ChevronLeft, ChevronRight, Menu, X, BookOpen, ShoppingCart, User, NotebookText } from 'lucide-react';
+import {
+  Box,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
+  BookOpen,
+  ShoppingCart,
+  User,
+  NotebookText,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
@@ -65,7 +76,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
   // Determinar item ativo baseado na URL atual
   const getActiveItem = () => {
     const currentItem = menuItems.find((item) => item.path === pathname);
-    return currentItem?.id || 'dashboard';
+    return currentItem?.id || '';
   };
 
   const activeItem = getActiveItem();
@@ -73,14 +84,16 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
   return (
     <>
       {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-3 left-4 z-50 md:hidden h-10 w-10 bg-[#2D2D2D] text-white"
-        onClick={handleMobileToggle}
-      >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      <div className='py-4 px-2 top-[-2px] fixed z-50 md:hidden '>
+        <Button
+          variant="ghost"
+          size="icon"
+          className=" h-10 w-10 bg-[#2D2D2D] text-white"
+          onClick={handleMobileToggle}
+        >
+          {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
@@ -242,7 +255,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 onClick={() => handleNavigation(item.path)}
                 className={cn(
                   'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer justify-start',
-                  isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white',
+                  isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />

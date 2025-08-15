@@ -244,7 +244,7 @@ export default function CursoPage() {
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto space-y-6">
                 {/* Course Header */}
-                <div className="flex items-start gap-6">
+                <div className="flex items-start gap-6 bg-white rounded-lg shadow-sm p-4 md:p-6">
                   <img
                     src={selectedCourse.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
                     alt={selectedCourse.title}
@@ -368,7 +368,7 @@ export default function CursoPage() {
                         </div>
 
                         {/* Lesson List Sidebar */}
-                        <div className="bg-gray-50 max-h-96 lg:max-h-[600px] overflow-y-auto">
+                        <div className="max-h-96 lg:max-h-[600px] overflow-y-auto">
                           <div className="p-4 border-b bg-white">
                             <h4 className="font-semibold text-gray-900">Conteúdo do Curso</h4>
                           </div>
@@ -427,14 +427,13 @@ export default function CursoPage() {
                 )}
 
                 {/* Tabs for additional content */}
-                <Tabs defaultValue="materiais" className="w-full">
+                {/* <Tabs defaultValue="materiais" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="materiais">Materiais</TabsTrigger>
                     <TabsTrigger value="duvidas">Dúvidas</TabsTrigger>
                     <TabsTrigger value="certificado">Certificado</TabsTrigger>
                   </TabsList>
 
-                  {/* Materials Tab */}
                   <TabsContent value="materiais" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -468,7 +467,6 @@ export default function CursoPage() {
                     </Card>
                   </TabsContent>
 
-                  {/* Comments Tab */}
                   <TabsContent value="duvidas" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -537,7 +535,6 @@ export default function CursoPage() {
                     </Card>
                   </TabsContent>
 
-                  {/* Certificate Tab */}
                   <TabsContent value="certificado" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -595,7 +592,7 @@ export default function CursoPage() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                </Tabs>
+                </Tabs> */}
               </div>
             </div>
           </main>
