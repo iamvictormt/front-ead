@@ -263,30 +263,23 @@ export default function CursoPage() {
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold mb-2">{selectedCourse.title}</h2>
                     <p className="text-gray-600 mb-4">{selectedCourse.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-md bg-yellow-400">
-                          <Star className="w-4 h-4 text-white" />
-                        </div>
-                        <span>{selectedCourse.rating || 0.0} avaliações</span>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="flex items-center gap-2 bg-yellow-100 rounded-md px-3 py-1 text-yellow-600">
+                        <Star className="w-4 h-4" />
+                        <span className="text-sm font-medium">{selectedCourse.rating || 0.0} avaliações</span>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-400">
-                          <Users className="w-4 h-4 text-white" />
-                        </div>
-                        <span>{selectedCourse.studentsCount || 0} alunos</span>
+                      <div className="flex items-center gap-2 bg-blue-100 rounded-md px-3 py-1 text-blue-600">
+                        <Users className="w-4 h-4" />
+                        <span className="text-sm font-medium">{selectedCourse.studentsCount || 0} alunos</span>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-md bg-green-400">
-                          <ShoppingCart className="w-4 h-4 text-white" />
-                        </div>
-                        <span>
-                          {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(selectedCourse.pricePaid)}
+                      <div className="flex items-center gap-2 bg-green-100 rounded-md px-3 py-1 text-green-600">
+                        <ShoppingCart className="w-4 h-4 " />
+                        <span className="text-sm font-medium ">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                            selectedCourse.pricePaid
+                          )}
                         </span>
                       </div>
                     </div>
@@ -425,7 +418,6 @@ export default function CursoPage() {
                                           >
                                             {lesson.title}
                                           </p>
-                                          
                                         </div>
                                       </div>
                                     </button>
