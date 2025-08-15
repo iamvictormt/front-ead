@@ -323,7 +323,7 @@ export default function CursoPage() {
 
                           {/* Video Controls */}
                           <div className="bg-[#2D2D2D] rounded-2xl text-white p-4">
-                            <div className="grid md:flex items-center justify-between mb-3">
+                            <div className="grid md:flex items-center md:justify-between mb-3">
                               <h3 className="text-lg font-semibold md:w-[75%] mb-2 md:mb-0">{selectedLesson.title}</h3>
                               <Button
                                 size="sm"
