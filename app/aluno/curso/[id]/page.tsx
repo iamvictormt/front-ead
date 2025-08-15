@@ -84,8 +84,12 @@ export default function CursoPage() {
     }
 
     if (videoUrl.includes('vimeo.com')) {
-      const videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
-      return `https://player.vimeo.com/video/${videoId}`;
+      if (videoUrl.includes('player.vimeo.com/video')) {
+        return videoUrl;
+      }
+
+      const parts = videoUrl.split('vimeo.com/')[1];
+      return `https://player.vimeo.com/video/${parts}`;
     }
 
     return videoUrl;
@@ -156,6 +160,8 @@ export default function CursoPage() {
           })),
         });
         success(completed ? 'Aula marcada como concluída' : 'Aula desmarcada como concluída');
+      } else {
+        showError(response.error || 'Erro ao atualizar progresso da aula');
       }
     } catch (error) {
       showError('Erro ao atualizar progresso da aula');
@@ -295,10 +301,11 @@ export default function CursoPage() {
                             selectedLesson.videoUrl.includes('vimeo') ? (
                               <iframe
                                 src={getVideoEmbedUrl(selectedLesson.videoUrl)}
-                                className="w-full h-full"
                                 frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
+                                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                className="w-full h-full"
+                                title="Optimizing Video Thumbnails"
                               />
                             ) : (
                               <video
