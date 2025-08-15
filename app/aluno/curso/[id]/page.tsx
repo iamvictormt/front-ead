@@ -37,6 +37,7 @@ export default function CursoPage() {
   const [selectedCourse, setSelectedCourse] = useState<MyCourse | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMarkLesson, setLoadingMarkLesson] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
@@ -149,6 +150,7 @@ export default function CursoPage() {
   const markLessonComplete = async (lessonId: number, completed: boolean) => {
     if (!selectedCourse) return;
     try {
+      setLoadingMarkLesson(true);
       const response = await apiService.updateLessonProgress(selectedCourse?.id, lessonId, completed);
       if (response.success) {
         setSelectedLesson({ ...selectedLesson, completed });
@@ -163,8 +165,10 @@ export default function CursoPage() {
       } else {
         showError(response.error || 'Erro ao atualizar progresso da aula');
       }
+      setLoadingMarkLesson(false);
     } catch (error) {
       showError('Erro ao atualizar progresso da aula');
+      setLoadingMarkLesson(false);
     }
   };
 
@@ -324,6 +328,7 @@ export default function CursoPage() {
                               <Button
                                 size="sm"
                                 variant={selectedLesson.completed ? 'default' : 'secondary'}
+                                disabled={loadingMarkLesson}
                                 onClick={() => markLessonComplete(selectedLesson.id, !selectedLesson.completed)}
                                 className={
                                   selectedLesson.completed ? 'bg-green-600 hover:bg-green-700 cursor-pointer' : ''
@@ -331,12 +336,20 @@ export default function CursoPage() {
                               >
                                 {selectedLesson.completed ? (
                                   <>
-                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    {!loadingMarkLesson ? (
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                    ) : (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
                                     Concluída
                                   </>
                                 ) : (
                                   <>
-                                    <PlayCircle className="w-4 h-4 mr-1" />
+                                    {!loadingMarkLesson ? (
+                                      <PlayCircle className="w-4 h-4 mr-1" />
+                                    ) : (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
                                     Marcar como Concluída
                                   </>
                                 )}
@@ -412,13 +425,7 @@ export default function CursoPage() {
                                           >
                                             {lesson.title}
                                           </p>
-                                          <p className="text-xs text-gray-500">
-                                            {lesson.videoUrl.includes('youtube')
-                                              ? 'YouTube'
-                                              : lesson.videoUrl.includes('vimeo')
-                                              ? 'Vimeo'
-                                              : 'Vídeo'}
-                                          </p>
+                                          
                                         </div>
                                       </div>
                                     </button>
