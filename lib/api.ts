@@ -5,6 +5,12 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
+interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 interface LoginRequest {
   email: string;
   password: string;
@@ -186,6 +192,13 @@ class ApiService {
   }
 
   // Authentication
+  async createUser(createUser: CreateUserRequest): Promise<ApiResponse<LoginResponse>> {
+    return this.request<LoginResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(createUser),
+    });
+  }
+
   async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
