@@ -25,6 +25,7 @@ import {
   Edit3,
   Trash2,
   MoreVertical,
+  Edit,
 } from 'lucide-react';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
@@ -76,7 +77,7 @@ const CommentItem = ({
   onEditComment: (commentId: number) => void;
   onDeleteComment: (commentId: number) => void;
 }) => {
-  console.log(currentUser?.id)
+  console.log(currentUser?.id);
   const isAdmin = comment.user?.role === 'ADMIN';
   const isOwner = comment.user?.id === currentUser?.id;
   const canReply = depth === 0 && currentUser?.role === 'ADMIN' && !isOwner;
@@ -84,24 +85,26 @@ const CommentItem = ({
   const canDelete = isOwner || currentUser?.role === 'ADMIN';
 
   return (
-    <div className={`${depth > 0 ? 'ml-8 border-l-2 border-primary/20 pl-6' : ''}`}>
+    <div className={`${depth > 0 ? 'ml-2 md:ml-6 border-l-2 border-primary/20 pl-2 md:pl-4' : ''}`}>
       <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow duration-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex items-start gap-2 md:gap-3">
             <div
-              className={`w-10 h-10 ${
+              className={`w-8 h-8 md:w-10 md:h-10 ${
                 isAdmin ? 'bg-primary' : 'bg-muted-foreground'
-              } rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold shadow-sm`}
+              } rounded-full flex items-center justify-center text-primary-foreground text-xs md:text-sm font-semibold shadow-sm flex-shrink-0`}
             >
               {comment.user.name?.charAt(0).toUpperCase() || 'U'}
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="font-semibold text-card-foreground">{comment.user.name}</h5>
+              <div className="flex items-start justify-between mb-2 gap-2">
+                <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                  <h5 className="font-semibold text-card-foreground text-sm md:text-base truncate">
+                    {comment.user.name}
+                  </h5>
                   {isAdmin && (
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium border border-primary/20">
+                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-primary/10 text-primary text-xs rounded-full font-medium border border-primary/20 flex-shrink-0">
                       Professor
                     </span>
                   )}
@@ -110,13 +113,20 @@ const CommentItem = ({
                 {(canEdit || canDelete) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-muted flex-shrink-0 touch-manipulation"
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-36">
                       {canEdit && (
-                        <DropdownMenuItem onClick={() => onEditToggle(comment.id, comment.content)}>
+                        <DropdownMenuItem
+                          onClick={() => onEditToggle(comment.id, comment.content)}
+                          className="cursor-pointer"
+                        >
                           <Edit3 className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
@@ -124,7 +134,7 @@ const CommentItem = ({
                       {canDelete && (
                         <DropdownMenuItem
                           onClick={() => onDeleteComment(comment.id)}
-                          className="text-red-500 focus:text-red-500"
+                          className="text-red-500 focus:text-red-500 cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4 mr-2 text-red-500" />
                           Excluir
@@ -140,45 +150,64 @@ const CommentItem = ({
                   <Textarea
                     value={editContent}
                     onChange={(e) => onEditContentChange(e.target.value)}
-                    className="min-h-[80px] resize-none"
+                    className="min-h-[80px] resize-none text-sm md:text-base"
                     placeholder="Edite seu comentário..."
                   />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => onEditComment(comment.id)} disabled={!editContent.trim()}>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => onEditComment(comment.id)}
+                      disabled={!editContent.trim()}
+                      className="w-full sm:w-auto touch-manipulation"
+                    >
                       Salvar
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => onEditToggle(-1, '')}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onEditToggle(-1, '')}
+                      className="w-full sm:w-auto touch-manipulation"
+                    >
                       Cancelar
                     </Button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <p className="text-card-foreground leading-relaxed mb-3">{comment.content}</p>
+                  <p className="text-card-foreground leading-relaxed mb-3 text-sm md:text-base break-words">
+                    {comment.content}
+                  </p>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(comment.updatedAt).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      {comment.createdAt !== comment.updatedAt && ' (editado)'}
-                    </span>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground flex-shrink-0 flex">
+                        {new Date(comment.updatedAt).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        {comment.createdAt !== comment.updatedAt && (
+                          <>
+                            <Edit className="md:hidden h-4 w-4 ml-1" />
+                            <span className="hidden md:inline  ml-1">(editado)</span>
+                          </>
+                        )}
+                      </span>
 
-                    {canReply && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onReplyToggle(comment.id)}
-                        className="text-primary hover:text-primary/80 h-auto p-1"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Responder
-                      </Button>
-                    )}
+                      {canReply && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onReplyToggle(comment.id)}
+                          className="text-primary hover:text-primary/80 h-8 px-2 py-1 touch-manipulation flex-shrink-0"
+                        >
+                          <MessageCircle className="hidden md:inline h-4 w-4 mr-1" />
+                          <span className="text-sm">Responder</span>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -186,20 +215,30 @@ const CommentItem = ({
           </div>
 
           {replyingTo === comment.id && (
-            <div className="mt-4 ml-13 space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
+            <div className="mt-4 space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
               <Textarea
                 placeholder="Digite sua resposta..."
                 value={replyContent}
                 onChange={(e) => onReplyContentChange(e.target.value)}
-                className="min-h-[80px] resize-none bg-background"
+                className="min-h-[80px] resize-none bg-background text-sm md:text-base"
                 rows={3}
               />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => onAddReply(comment.id)} disabled={!replyContent.trim()}>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => onAddReply(comment.id)}
+                  disabled={!replyContent.trim()}
+                  className="w-full sm:w-auto touch-manipulation"
+                >
                   <MessageCircle className="h-4 w-4 mr-1" />
                   Enviar Resposta
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => onReplyToggle(-1)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onReplyToggle(-1)}
+                  className="w-full sm:w-auto touch-manipulation"
+                >
                   Cancelar
                 </Button>
               </div>
@@ -209,7 +248,7 @@ const CommentItem = ({
       </Card>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 space-y-4">
+        <div className="mt-3 md:mt-4 space-y-3 md:space-y-4">
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
@@ -411,7 +450,7 @@ export default function CursoPage() {
   const addReply = async (parentId: number) => {
     if (!replyContent.trim() || !selectedLessonId) return;
 
-    const parentComment = comments.find((c) => c.id === parentId);
+    const parentComment = findCommentById(comments, parentId);
     if (!parentComment) return;
 
     if (parentComment.user.id === currentUser?.id) {
@@ -425,7 +464,7 @@ export default function CursoPage() {
     }
 
     try {
-      const response = await apiService.addLessonComment(selectedLessonId, replyContent, parentId);
+      const response = await apiService.addLessonComment(selectedLessonId, replyContent, parentComment.id);
       if (response.success && response.data) {
         await loadLessonComments(selectedLessonId);
         setReplyContent('');
@@ -438,6 +477,24 @@ export default function CursoPage() {
       showError('Erro ao adicionar resposta');
     }
   };
+
+  function findCommentById(comments: Comment[], id: number): Comment | null {
+    for (const comment of comments) {
+      if (comment.id === id) {
+        // se o id for do comment raiz
+        return comment;
+      }
+
+      if (comment.replies) {
+        const reply = comment.replies.find((r) => r.id === id);
+        if (reply) {
+          // se o id for de um reply, retornamos o comment raiz
+          return comment;
+        }
+      }
+    }
+    return null;
+  }
 
   const editComment = async (commentId: number) => {
     if (!editContent.trim()) return;
@@ -849,6 +906,10 @@ export default function CursoPage() {
                                 </Button>
                               </div>
                             ))}
+                          <div className="text-center py-12">
+                            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum material anexado.</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -858,7 +919,6 @@ export default function CursoPage() {
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                          <MessageCircle className="h-5 w-5" />
                           Dúvidas e Comentários
                         </CardTitle>
                       </CardHeader>
@@ -876,7 +936,6 @@ export default function CursoPage() {
                                   onClick={() => loadLessonComments(selectedLesson.id)}
                                   className="border-primary/20 text-primary hover:bg-primary/10"
                                 >
-                                  <MessageCircle className="h-4 w-4 mr-2" />
                                   Carregar Comentários
                                 </Button>
                               </div>
