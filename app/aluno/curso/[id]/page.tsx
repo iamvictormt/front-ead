@@ -2,9 +2,8 @@
 
 import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
 import { ProtectedRoute } from '@/components/protected-route';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,9 +21,10 @@ import {
   ArrowLeft,
   ChevronRight,
   ChevronLeft,
-  Award,
-  Clock,
   ShoppingCart,
+  Edit3,
+  Trash2,
+  MoreVertical,
 } from 'lucide-react';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
@@ -38,6 +38,202 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+const CommentItem = ({
+  comment,
+  depth = 0,
+  currentUser,
+  replyingTo,
+  replyContent,
+  editingComment,
+  editContent,
+  onReplyToggle,
+  onReplyContentChange,
+  onAddReply,
+  onEditToggle,
+  onEditContentChange,
+  onEditComment,
+  onDeleteComment,
+}: {
+  comment: Comment;
+  depth?: number;
+  currentUser: any;
+  replyingTo: number | null;
+  replyContent: string;
+  editingComment: number | null;
+  editContent: string;
+  onReplyToggle: (commentId: number) => void;
+  onReplyContentChange: (content: string) => void;
+  onAddReply: (parentId: number) => void;
+  onEditToggle: (commentId: number, content: string) => void;
+  onEditContentChange: (content: string) => void;
+  onEditComment: (commentId: number) => void;
+  onDeleteComment: (commentId: number) => void;
+}) => {
+  console.log(currentUser?.id)
+  const isAdmin = comment.user?.role === 'ADMIN';
+  const isOwner = comment.user?.id === currentUser?.id;
+  const canReply = depth === 0 && currentUser?.role === 'ADMIN' && !isOwner;
+  const canEdit = isOwner;
+  const canDelete = isOwner || currentUser?.role === 'ADMIN';
+
+  return (
+    <div className={`${depth > 0 ? 'ml-8 border-l-2 border-primary/20 pl-6' : ''}`}>
+      <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-10 h-10 ${
+                isAdmin ? 'bg-primary' : 'bg-muted-foreground'
+              } rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold shadow-sm`}
+            >
+              {comment.user.name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <h5 className="font-semibold text-card-foreground">{comment.user.name}</h5>
+                  {isAdmin && (
+                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium border border-primary/20">
+                      Professor
+                    </span>
+                  )}
+                </div>
+
+                {(canEdit || canDelete) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {canEdit && (
+                        <DropdownMenuItem onClick={() => onEditToggle(comment.id, comment.content)}>
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                      )}
+                      {canDelete && (
+                        <DropdownMenuItem
+                          onClick={() => onDeleteComment(comment.id)}
+                          className="text-red-500 focus:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                          Excluir
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              {editingComment === comment.id ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={editContent}
+                    onChange={(e) => onEditContentChange(e.target.value)}
+                    className="min-h-[80px] resize-none"
+                    placeholder="Edite seu comentário..."
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => onEditComment(comment.id)} disabled={!editContent.trim()}>
+                      Salvar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => onEditToggle(-1, '')}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-card-foreground leading-relaxed mb-3">{comment.content}</p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(comment.updatedAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      {comment.createdAt !== comment.updatedAt && ' (editado)'}
+                    </span>
+
+                    {canReply && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onReplyToggle(comment.id)}
+                        className="text-primary hover:text-primary/80 h-auto p-1"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Responder
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {replyingTo === comment.id && (
+            <div className="mt-4 ml-13 space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
+              <Textarea
+                placeholder="Digite sua resposta..."
+                value={replyContent}
+                onChange={(e) => onReplyContentChange(e.target.value)}
+                className="min-h-[80px] resize-none bg-background"
+                rows={3}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => onAddReply(comment.id)} disabled={!replyContent.trim()}>
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  Enviar Resposta
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => onReplyToggle(-1)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="mt-4 space-y-4">
+          {comment.replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              depth={depth + 1}
+              currentUser={currentUser}
+              replyingTo={replyingTo}
+              replyContent={replyContent}
+              editingComment={editingComment}
+              editContent={editContent}
+              onReplyToggle={onReplyToggle}
+              onReplyContentChange={onReplyContentChange}
+              onAddReply={onAddReply}
+              onEditToggle={onEditToggle}
+              onEditContentChange={onEditContentChange}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function CursoPage() {
   const { isCollapsed } = useSidebar();
@@ -55,6 +251,13 @@ export default function CursoPage() {
     lessonId: number;
     completed: boolean;
   } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [editingComment, setEditingComment] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { success, error: showError } = useToast();
   const router = useRouter();
   const params = useParams();
@@ -65,11 +268,56 @@ export default function CursoPage() {
     'md:ml-80': !isSidebarCollapsed,
   });
 
+  const handleReplyToggle = useCallback(
+    (commentId: number) => {
+      setReplyingTo(replyingTo === commentId ? null : commentId);
+      if (replyingTo !== commentId) {
+        setReplyContent('');
+      }
+    },
+    [replyingTo]
+  );
+
+  const handleReplyContentChange = useCallback((content: string) => {
+    setReplyContent(content);
+  }, []);
+
+  const handleEditToggle = useCallback((commentId: number, content: string) => {
+    if (commentId === -1) {
+      setEditingComment(null);
+      setEditContent('');
+    } else {
+      setEditingComment(commentId);
+      setEditContent(content);
+    }
+  }, []);
+
+  const handleEditContentChange = useCallback((content: string) => {
+    setEditContent(content);
+  }, []);
+
+  const handleDeleteComment = useCallback((commentId: number) => {
+    setCommentToDelete(commentId);
+    setShowDeleteDialog(true);
+  }, []);
+
   useEffect(() => {
     if (courseId) {
       loadCourseDetails(courseId);
+      loadCurrentUser();
     }
   }, [courseId]);
+
+  const loadCurrentUser = async () => {
+    try {
+      const response = await apiService.getProfile();
+      if (response.success && response.data) {
+        setCurrentUser(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const loadCourseDetails = async (courseId: string) => {
     try {
@@ -151,17 +399,75 @@ export default function CursoPage() {
       if (response.success && response.data) {
         setComments([...comments, response.data]);
         setNewComment('');
-        toast({
-          title: 'Sucesso',
-          description: 'Comentário adicionado com sucesso',
-        });
+        success('Comentário adicionado com sucesso');
+      } else {
+        showError(response.error || 'Erro ao adicionar comentário');
       }
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao adicionar comentário',
-        variant: 'destructive',
-      });
+      showError('Erro ao adicionar comentário');
+    }
+  };
+
+  const addReply = async (parentId: number) => {
+    if (!replyContent.trim() || !selectedLessonId) return;
+
+    const parentComment = comments.find((c) => c.id === parentId);
+    if (!parentComment) return;
+
+    if (parentComment.user.id === currentUser?.id) {
+      showError('Você não pode responder ao seu próprio comentário');
+      return;
+    }
+
+    if (currentUser?.role !== 'ADMIN') {
+      showError('Apenas professores podem responder comentários');
+      return;
+    }
+
+    try {
+      const response = await apiService.addLessonComment(selectedLessonId, replyContent, parentId);
+      if (response.success && response.data) {
+        await loadLessonComments(selectedLessonId);
+        setReplyContent('');
+        setReplyingTo(null);
+        success('Resposta adicionada com sucesso');
+      } else {
+        showError(response.error || 'Erro ao adicionar resposta');
+      }
+    } catch (error) {
+      showError('Erro ao adicionar resposta');
+    }
+  };
+
+  const editComment = async (commentId: number) => {
+    if (!editContent.trim()) return;
+
+    try {
+      const response = await apiService.updateComment(commentId, editContent);
+      if (response.success) {
+        await loadLessonComments(selectedLessonId!);
+        setEditingComment(null);
+        setEditContent('');
+        success('Comentário editado com sucesso');
+      } else {
+        showError(response.error || 'Erro ao editar comentário');
+      }
+    } catch (error) {
+      showError('Erro ao editar comentário');
+    }
+  };
+
+  const deleteComment = async (commentId: number) => {
+    try {
+      const response = await apiService.deleteComment(commentId);
+      if (response.success) {
+        await loadLessonComments(selectedLessonId!);
+        success('Comentário excluído com sucesso');
+      } else {
+        showError(response.error || 'Erro ao excluir comentário');
+      }
+    } catch (error) {
+      showError('Erro ao excluir comentário');
     }
   };
 
@@ -229,7 +535,7 @@ export default function CursoPage() {
   if (loading) {
     return (
       <ProtectedRoute allowedRoles={['STUDENT']}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="flex items-center gap-2">
             <Loader2 className="w-6 h-6 animate-spin" />
             <span>Carregando curso...</span>
@@ -242,9 +548,9 @@ export default function CursoPage() {
   if (!selectedCourse) {
     return (
       <ProtectedRoute allowedRoles={['STUDENT']}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <p className="text-gray-500 mb-4">Curso não encontrado</p>
+            <p className="text-muted-foreground mb-4">Curso não encontrado</p>
             <Button onClick={() => router.push('/aluno/meus-cursos')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar aos Cursos
@@ -260,8 +566,36 @@ export default function CursoPage() {
 
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
+
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir Comentário</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja excluir este comentário? Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (commentToDelete) {
+                    deleteComment(commentToDelete);
+                    setCommentToDelete(null);
+                  }
+                  setShowDeleteDialog(false);
+                }}
+              >
+                Excluir
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
           <DialogContent>
@@ -288,7 +622,6 @@ export default function CursoPage() {
         </Dialog>
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
-          {/* Header */}
           <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
@@ -304,11 +637,9 @@ export default function CursoPage() {
             </div>
           </header>
 
-          {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto space-y-6">
-                {/* Course Header */}
                 <div className="flex items-start gap-6 bg-white rounded-lg shadow-sm p-4 md:p-6">
                   <img
                     src={selectedCourse.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
@@ -341,12 +672,10 @@ export default function CursoPage() {
                   </div>
                 </div>
 
-                {/* Video Player Section */}
                 {selectedLesson && (
                   <Card className="overflow-hidden py-0">
                     <CardContent className="p-0">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-                        {/* Video Player */}
                         <div className="lg:col-span-2 bg-[#2D2D2D]">
                           <div className="aspect-video w-full">
                             {selectedLesson.videoUrl.includes('youtube') ||
@@ -369,7 +698,6 @@ export default function CursoPage() {
                             )}
                           </div>
 
-                          {/* Video Controls */}
                           <div className="bg-[#2D2D2D] rounded-2xl text-white p-4">
                             <div className="grid md:flex items-center md:justify-between mb-3">
                               <h3 className="text-lg font-semibold md:w-[75%] mb-2 md:mb-0">{selectedLesson.title}</h3>
@@ -406,7 +734,6 @@ export default function CursoPage() {
                               )}
                             </div>
 
-                            {/* Navigation */}
                             <div className="flex items-center justify-between">
                               <Button
                                 size="sm"
@@ -437,7 +764,6 @@ export default function CursoPage() {
                           </div>
                         </div>
 
-                        {/* Lesson List Sidebar */}
                         <div className="max-h-96 lg:max-h-[600px] overflow-y-auto">
                           <div className="p-4 border-b bg-white">
                             <h4 className="font-semibold text-gray-900">Conteúdo do Curso</h4>
@@ -489,7 +815,6 @@ export default function CursoPage() {
                   </Card>
                 )}
 
-                {/* Tabs for additional content */}
                 <Tabs defaultValue="materiais" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="materiais">Materiais</TabsTrigger>
@@ -532,65 +857,95 @@ export default function CursoPage() {
                   <TabsContent value="duvidas" className="space-y-4">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Dúvidas e Comentários</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                          <MessageCircle className="h-5 w-5" />
+                          Dúvidas e Comentários
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           {selectedLesson && (
                             <>
-                              <div className="p-3 bg-blue-50 rounded-lg">
-                                <p className="text-sm text-blue-800">
+                              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                                <p className="text-sm text-primary font-medium mb-2">
                                   Comentários para: <strong>{selectedLesson.title}</strong>
                                 </p>
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => loadLessonComments(selectedLesson.id)}
-                                  className="mt-2"
+                                  className="border-primary/20 text-primary hover:bg-primary/10"
                                 >
+                                  <MessageCircle className="h-4 w-4 mr-2" />
                                   Carregar Comentários
                                 </Button>
                               </div>
 
                               {selectedLessonId === selectedLesson.id && (
                                 <>
-                                  <div className="space-y-3">
-                                    {comments.map((comment) => (
-                                      <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
-                                        <div className="flex items-start gap-3">
-                                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
-                                            {comment.userName?.charAt(0) || 'U'}
-                                          </div>
-                                          <div className="flex-1">
-                                            <h5 className="font-medium">{comment.userName}</h5>
-                                            <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
-                                            <p className="text-xs text-gray-400 mt-2">
-                                              {new Date(comment.createdAt).toLocaleDateString('pt-BR')}
-                                            </p>
-                                          </div>
-                                        </div>
+                                  <div className="space-y-6">
+                                    {comments.length > 0 ? (
+                                      comments.map((comment) => (
+                                        <CommentItem
+                                          key={comment.id}
+                                          comment={comment}
+                                          currentUser={currentUser}
+                                          replyingTo={replyingTo}
+                                          replyContent={replyContent}
+                                          editingComment={editingComment}
+                                          editContent={editContent}
+                                          onReplyToggle={handleReplyToggle}
+                                          onReplyContentChange={handleReplyContentChange}
+                                          onAddReply={addReply}
+                                          onEditToggle={handleEditToggle}
+                                          onEditContentChange={handleEditContentChange}
+                                          onEditComment={editComment}
+                                          onDeleteComment={handleDeleteComment}
+                                        />
+                                      ))
+                                    ) : (
+                                      <div className="text-center py-12">
+                                        <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                        <p className="text-muted-foreground">
+                                          Nenhum comentário ainda. Seja o primeiro a comentar!
+                                        </p>
                                       </div>
-                                    ))}
+                                    )}
                                   </div>
-                                  <div className="space-y-2">
-                                    <Textarea
-                                      placeholder="Digite sua dúvida ou comentário..."
-                                      value={newComment}
-                                      onChange={(e) => setNewComment(e.target.value)}
-                                    />
-                                    <Button onClick={addComment} disabled={!newComment.trim()}>
-                                      <MessageCircle className="w-4 h-4 mr-1" />
-                                      Enviar
-                                    </Button>
-                                  </div>
+
+                                  <Card className="border-primary/20">
+                                    <CardHeader>
+                                      <CardTitle className="text-lg">Adicionar Comentário</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                      <Textarea
+                                        placeholder="Digite sua dúvida ou comentário..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        className="min-h-[100px] resize-none"
+                                        rows={4}
+                                      />
+                                      <Button
+                                        onClick={addComment}
+                                        disabled={!newComment.trim()}
+                                        className="w-full sm:w-auto"
+                                      >
+                                        <MessageCircle className="w-4 h-4 mr-2" />
+                                        Enviar Comentário
+                                      </Button>
+                                    </CardContent>
+                                  </Card>
                                 </>
                               )}
                             </>
                           )}
                           {!selectedLesson && (
-                            <p className="text-gray-500 text-center py-8">
-                              Selecione uma aula para ver os comentários e adicionar dúvidas
-                            </p>
+                            <div className="text-center py-12">
+                              <PlayCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <p className="text-muted-foreground">
+                                Selecione uma aula para ver os comentários e adicionar dúvidas
+                              </p>
+                            </div>
                           )}
                         </div>
                       </CardContent>

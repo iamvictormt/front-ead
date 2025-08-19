@@ -27,6 +27,7 @@ interface LoginResponse {
 }
 
 interface User {
+  id?: string;
   name: string;
   email: string;
   role: 'ADMIN' | 'STUDENT';
@@ -90,8 +91,11 @@ interface Comment {
   content: string;
   userId: number;
   lessonId: number;
-  userName: string;
   createdAt: string;
+  updatedAt: string;
+  user: User;
+  parent: Comment;
+  replies: Comment[];
 }
 
 interface Progress {
@@ -374,36 +378,49 @@ class ApiService {
     return this.request<MyCourse>(`/courses/my-courses/${courseId}`);
   }
 
-  async getLessonComments(lessonId: number): Promise<ApiResponse<Comment[]>> {
-    return this.request<Comment[]>(`/lessons/${lessonId}/comments`);
-  }
-
   async downloadCertificate(courseId: string): Promise<ApiResponse<any>> {
     const response = await fetch(`${this.baseURL}/certificates/download/${courseId}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
       },
-    })
+    });
 
     if (!response.ok) {
       return {
         success: false,
         error: `Failed to download certificate: ${response.status}`,
-      }
+      };
     }
 
-    const blob = await response.blob()
+    const blob = await response.blob();
     return {
       success: true,
       data: blob,
-    }
+    };
   }
 
-  async addLessonComment(lessonId: number, content: string): Promise<ApiResponse<Comment>> {
-    return this.request<Comment>(`/lessons/${lessonId}/comments`, {
+  async getLessonComments(lessonId: number): Promise<ApiResponse<Comment[]>> {
+    return this.request<Comment[]>(`/comments/lesson/${lessonId}`);
+  }
+
+  async addLessonComment(lessonId: number, content: string, parentId?: number): Promise<ApiResponse<Comment>> {
+    return this.request<Comment>(`/comments`, {
       method: 'POST',
+      body: JSON.stringify({ content, lessonId, parentId }),
+    });
+  }
+
+  async updateComment(commentId: number, content: string): Promise<ApiResponse<Comment>> {
+    return this.request<Comment>(`/comments/${commentId}`, {
+      method: 'PATCH',
       body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteComment(commentId: number): Promise<ApiResponse> {
+    return this.request(`/comments/${commentId}`, {
+      method: 'DELETE',
     });
   }
 
