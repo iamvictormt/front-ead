@@ -354,18 +354,8 @@ class ApiService {
   }
 
   // Certificates
-  async getCertificates(): Promise<
-    ApiResponse<
-      Array<{
-        id: string;
-        curso: string;
-        instrutor: string;
-        dataEmissao: string;
-        credencial: string;
-      }>
-    >
-  > {
-    return this.request('/student/certificates');
+  async getCertificates(): Promise<ApiResponse<any>> {
+    return this.request('/certificates/user');
   }
 
   // Settings
@@ -386,6 +376,28 @@ class ApiService {
 
   async getLessonComments(lessonId: number): Promise<ApiResponse<Comment[]>> {
     return this.request<Comment[]>(`/lessons/${lessonId}/comments`);
+  }
+
+  async downloadCertificate(courseId: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`${this.baseURL}/certificates/download/${courseId}`, {
+      method: "POST",
+      headers: {
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+    })
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Failed to download certificate: ${response.status}`,
+      }
+    }
+
+    const blob = await response.blob()
+    return {
+      success: true,
+      data: blob,
+    }
   }
 
   async addLessonComment(lessonId: number, content: string): Promise<ApiResponse<Comment>> {

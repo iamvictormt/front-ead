@@ -144,15 +144,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (!accessToken) return;
+    setIsLoading(true);
 
     try {
       const response = await apiService.getProfile();
       if (response.success && response.data) {
         setUser(response.data);
         localStorage.setItem('user', JSON.stringify(response.data));
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
+      setIsLoading(false);
     }
   };
 

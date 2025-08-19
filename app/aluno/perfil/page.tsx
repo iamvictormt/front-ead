@@ -1,107 +1,183 @@
-'use client';
+"use client"
 
-import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
-import { ProtectedRoute } from '@/components/protected-route';
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, MapPin, Calendar, Award, Settings, Camera, Save, Edit } from 'lucide-react';
-import clsx from 'clsx';
-import { useSidebar } from '@/contexts/sidebar-context';
+import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
+import { ProtectedRoute } from "@/components/protected-route"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { User, Mail, Phone, MapPin, Calendar, Award, Camera, Save, Edit, Download } from "lucide-react"
+import clsx from "clsx"
+import { useSidebar } from "@/contexts/sidebar-context"
+import { apiService } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PerfilPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
-  const [isEditing, setIsEditing] = useState(false);
-  const { user, updateProfile } = useAuth();
+  const { isCollapsed, setIsCollapsed } = useSidebar()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed)
+  const [isEditing, setIsEditing] = useState(false)
+  const { user, updateProfile, isLoading } = useAuth()
+  const [certificates, setCertificates] = useState([])
+  const [loadingCertificates, setLoadingCertificates] = useState(false)
+  const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null)
+  const { toast } = useToast()
 
-  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
-    'md:ml-42': isSidebarCollapsed,
-    'md:ml-80': !isSidebarCollapsed,
-  });
+  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
+    "md:ml-42": isSidebarCollapsed,
+    "md:ml-80": !isSidebarCollapsed,
+  })
 
-  // Mock data para perfil do usuário
   const [profileData, setProfileData] = useState({
-    nome: user?.name || 'Maria Santos',
-    email: user?.email || 'aluno@test.com',
-    telefone: '(11) 99999-9999',
-    cidade: 'São Paulo, SP',
-    dataNascimento: '1995-03-15',
-    bio: 'Desenvolvedora Frontend apaixonada por tecnologia e aprendizado contínuo.',
-    linkedin: 'https://linkedin.com/in/mariasantos',
-    github: 'https://github.com/mariasantos',
-    website: 'https://mariasantos.dev',
-  });
+    nome: user?.name || "",
+    email: user?.email || "",
+  })
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        nome: user.name || "",
+        email: user.email || "",
+      })
+    }
+  }, [user])
 
   const conquistas = [
     {
       id: 1,
-      titulo: 'Primeiro Curso Concluído',
-      descricao: 'Completou seu primeiro curso na plataforma',
-      data: '2024-01-10',
-      icone: '🎓',
+      titulo: "Primeiro Curso Concluído",
+      descricao: "Completou seu primeiro curso na plataforma",
+      data: "2024-01-10",
+      icone: "🎓",
     },
     {
       id: 2,
-      titulo: 'Estudante Dedicado',
-      descricao: 'Completou 20+ horas de estudo',
-      data: '2024-01-25',
-      icone: '📚',
+      titulo: "Estudante Dedicado",
+      descricao: "Completou 20+ horas de estudo",
+      data: "2024-01-25",
+      icone: "📚",
     },
     {
       id: 3,
-      titulo: 'Meta Semanal',
-      descricao: 'Completou 5 lições em uma semana',
-      data: '2024-02-01',
-      icone: '🎯',
+      titulo: "Meta Semanal",
+      descricao: "Completou 5 lições em uma semana",
+      data: "2024-02-01",
+      icone: "🎯",
     },
-  ];
+  ]
 
-  const certificados = [
-    {
-      id: 1,
-      curso: 'JavaScript Avançado',
-      instrutor: 'Maria Santos',
-      dataEmissao: '2024-01-10',
-      credencial: 'JS-ADV-2024-001',
-    },
-    {
-      id: 2,
-      curso: 'React Fundamentals',
-      instrutor: 'João Silva',
-      dataEmissao: '2024-02-15',
-      credencial: 'REACT-FUND-2024-002',
-    },
-  ];
+  useEffect(() => {
+    if (user) {
+      loadCertificates()
+    }
+  }, [user])
+
+  const loadCertificates = async () => {
+    setLoadingCertificates(true)
+    try {
+      const response = await apiService.getCertificates()
+      if (response.success && response.data) {
+        setCertificates(response.data)
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os certificados",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error loading certificates:", error)
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar certificados",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingCertificates(false)
+    }
+  }
+
+  const handleDownloadCertificate = async (courseId: string, courseName: string) => {
+    setDownloadingCertificate(courseId)
+    try {
+      const response = await apiService.downloadCertificate(courseId)
+      if (response.success && response.data) {
+        const url = window.URL.createObjectURL(response.data)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `certificado-${courseName.replace(/\s+/g, "-").toLowerCase()}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+
+        toast({
+          title: "Sucesso",
+          description: "Certificado baixado com sucesso!",
+        })
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível baixar o certificado",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error downloading certificate:", error)
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar certificado",
+        variant: "destructive",
+      })
+    } finally {
+      setDownloadingCertificate(null)
+    }
+  }
 
   const handleSave = async () => {
     const result = await updateProfile({
       name: profileData.nome,
       email: profileData.email,
-    });
+    })
 
     if (result.success) {
-      setIsEditing(false);
+      setIsEditing(false)
     } else {
-      console.error(result.error);
+      console.error(result.error)
     }
-  };
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setProfileData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
+    }))
+  }
+
+  if (isLoading || !user) {
+    return (
+      <ProtectedRoute allowedRoles={["STUDENT"]}>
+        <div className="min-h-screen bg-gray-50">
+          <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
+          <div className={contentMargin}>
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Carregando perfil do usuário...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
 
   return (
-    <ProtectedRoute allowedRoles={['STUDENT']}>
+    <ProtectedRoute allowedRoles={["STUDENT"]}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
 
@@ -115,7 +191,7 @@ export default function PerfilPage() {
                 </h1>
                 <Button
                   onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-                  className={isEditing ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}
+                  className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
                 >
                   {isEditing ? (
                     <>
@@ -155,9 +231,9 @@ export default function PerfilPage() {
                               <AvatarImage src="/placeholder.svg?height=96&width=96" />
                               <AvatarFallback className="text-2xl">
                                 {profileData.nome
-                                  .split(' ')
+                                  .split(" ")
                                   .map((n) => n[0])
-                                  .join('')}
+                                  .join("")}
                               </AvatarFallback>
                             </Avatar>
                             {isEditing && (
@@ -190,7 +266,7 @@ export default function PerfilPage() {
                               <Input
                                 id="nome"
                                 value={profileData.nome}
-                                onChange={(e) => handleInputChange('nome', e.target.value)}
+                                onChange={(e) => handleInputChange("nome", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10"
                               />
@@ -204,20 +280,20 @@ export default function PerfilPage() {
                                 id="email"
                                 type="email"
                                 value={profileData.email}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                onChange={(e) => handleInputChange("email", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10"
                               />
                             </div>
                           </div>
-                          <div className="space-y-2">
+                          {/* <div className="space-y-2">
                             <Label htmlFor="telefone">Telefone</Label>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                               <Input
                                 id="telefone"
                                 value={profileData.telefone}
-                                onChange={(e) => handleInputChange('telefone', e.target.value)}
+                                onChange={(e) => handleInputChange("telefone", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10"
                               />
@@ -230,7 +306,7 @@ export default function PerfilPage() {
                               <Input
                                 id="cidade"
                                 value={profileData.cidade}
-                                onChange={(e) => handleInputChange('cidade', e.target.value)}
+                                onChange={(e) => handleInputChange("cidade", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10"
                               />
@@ -244,20 +320,20 @@ export default function PerfilPage() {
                                 id="dataNascimento"
                                 type="date"
                                 value={profileData.dataNascimento}
-                                onChange={(e) => handleInputChange('dataNascimento', e.target.value)}
+                                onChange={(e) => handleInputChange("dataNascimento", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10"
                               />
                             </div>
-                          </div>
+                          </div> */}
                         </div>
 
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                           <Label htmlFor="bio">Biografia</Label>
                           <textarea
                             id="bio"
                             value={profileData.bio}
-                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                            onChange={(e) => handleInputChange("bio", e.target.value)}
                             disabled={!isEditing}
                             className="w-full p-3 border border-gray-300 rounded-md resize-none h-24 disabled:bg-gray-50"
                             placeholder="Conte um pouco sobre você..."
@@ -270,7 +346,7 @@ export default function PerfilPage() {
                             <Input
                               id="linkedin"
                               value={profileData.linkedin}
-                              onChange={(e) => handleInputChange('linkedin', e.target.value)}
+                              onChange={(e) => handleInputChange("linkedin", e.target.value)}
                               disabled={!isEditing}
                               placeholder="https://linkedin.com/in/..."
                             />
@@ -280,7 +356,7 @@ export default function PerfilPage() {
                             <Input
                               id="github"
                               value={profileData.github}
-                              onChange={(e) => handleInputChange('github', e.target.value)}
+                              onChange={(e) => handleInputChange("github", e.target.value)}
                               disabled={!isEditing}
                               placeholder="https://github.com/..."
                             />
@@ -290,12 +366,12 @@ export default function PerfilPage() {
                             <Input
                               id="website"
                               value={profileData.website}
-                              onChange={(e) => handleInputChange('website', e.target.value)}
+                              onChange={(e) => handleInputChange("website", e.target.value)}
                               disabled={!isEditing}
                               placeholder="https://seusite.com"
                             />
                           </div>
-                        </div>
+                        </div> */}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -319,7 +395,7 @@ export default function PerfilPage() {
                                 <h3 className="font-semibold text-gray-900">{conquista.titulo}</h3>
                                 <p className="text-sm text-gray-600 mt-1">{conquista.descricao}</p>
                                 <p className="text-xs text-gray-500 mt-2">
-                                  Conquistado em {new Date(conquista.data).toLocaleDateString('pt-BR')}
+                                  Conquistado em {new Date(conquista.data).toLocaleDateString("pt-BR")}
                                 </p>
                               </div>
                             </div>
@@ -333,40 +409,53 @@ export default function PerfilPage() {
                   <TabsContent value="certificados" className="space-y-6">
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Award className="w-5 h-5 mr-2" />
-                          Meus Certificados
-                        </CardTitle>
+                        <CardTitle className="flex items-center">Meus Certificados</CardTitle>
                         <CardDescription>Certificados dos cursos que você concluiu</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          {certificados.map((certificado) => (
-                            <div
-                              key={certificado.id}
-                              className="block md:flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                            >
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900">{certificado.curso}</h3>
-                                <p className="text-sm text-gray-600">Instrutor: {certificado.instrutor}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Emitido em {new Date(certificado.dataEmissao).toLocaleDateString('pt-BR')}
-                                </p>
-                                <p className="text-xs text-gray-500">Credencial: {certificado.credencial}</p>
+                        {loadingCertificates ? (
+                          <div className="flex items-center justify-center py-8">
+                            <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+                            <span className="ml-2">Carregando certificados...</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {certificates.map((certificate: any) => (
+                              <div
+                                key={certificate.id}
+                                className="block md:flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                              >
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900">{certificate.course.title}</h3>
+                                  <p className="text-sm text-gray-600">Instrutor: {certificate.course.instructor}</p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Emitido em {new Date(certificate.issuedAt).toLocaleDateString("pt-BR")}
+                                  </p>
+                                  <p className="text-xs text-gray-500">Credencial: {certificate.token}</p>
+                                </div>
+                                <div className="flex space-x-2 md:mt-0 mt-3">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      handleDownloadCertificate(certificate.course.id, certificate.course.title)
+                                    }
+                                    disabled={downloadingCertificate === certificate.course.id}
+                                  >
+                                    {downloadingCertificate === certificate.course.id ? (
+                                      <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mr-1"></div>
+                                    ) : (
+                                      <Download className="w-4 h-4 mr-1" />
+                                    )}
+                                    Download
+                                  </Button>
+                                </div>
                               </div>
-                              <div className="flex space-x-2 md:mt-0 mt-3">
-                                <Button size="sm" variant="outline">
-                                  Visualizar
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  Download
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        )}
 
-                        {certificados.length === 0 && (
+                        {!loadingCertificates && certificates.length === 0 && (
                           <div className="text-center py-8">
                             <Award className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                             <p className="text-gray-500">Você ainda não possui certificados</p>
@@ -383,5 +472,5 @@ export default function PerfilPage() {
         </div>
       </div>
     </ProtectedRoute>
-  );
+  )
 }

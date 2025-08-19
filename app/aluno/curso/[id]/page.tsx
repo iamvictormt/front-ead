@@ -30,6 +30,14 @@ import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
 import { useRouter, useParams } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function CursoPage() {
   const { isCollapsed } = useSidebar();
@@ -38,9 +46,15 @@ export default function CursoPage() {
   const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMarkLesson, setLoadingMarkLesson] = useState(false);
+  const [courseCompleted, setCourseCompleted] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingLessonAction, setPendingLessonAction] = useState<{
+    lessonId: number;
+    completed: boolean;
+  } | null>(null);
   const { success, error: showError } = useToast();
   const router = useRouter();
   const params = useParams();
@@ -65,6 +79,10 @@ export default function CursoPage() {
         setSelectedCourse(response.data);
         if (response.data.modules && response.data.modules.length > 0 && response.data.modules[0].lessons.length > 0) {
           setSelectedLesson(response.data.modules[0].lessons[0]);
+        }
+
+        if (response?.data.certificate) {
+          setCourseCompleted(true);
         }
       } else {
         showError(response.error || 'Erro ao carregar detalhes do curso');
@@ -149,6 +167,24 @@ export default function CursoPage() {
 
   const markLessonComplete = async (lessonId: number, completed: boolean) => {
     if (!selectedCourse) return;
+
+    if (completed && !selectedCourse.certificate) {
+      const allLessons = selectedCourse.modules?.flatMap((module) => module.lessons) || [];
+      const uncompletedLessons = allLessons.filter((lesson) => !lesson.completed);
+
+      if (uncompletedLessons.length === 1 && uncompletedLessons[0].id === lessonId) {
+        setPendingLessonAction({ lessonId, completed });
+        setShowConfirmDialog(true);
+        return;
+      }
+    }
+
+    await executeMarkLessonComplete(lessonId, completed);
+  };
+
+  const executeMarkLessonComplete = async (lessonId: number, completed: boolean) => {
+    if (!selectedCourse) return;
+
     try {
       setLoadingMarkLesson(true);
       const response = await apiService.updateLessonProgress(selectedCourse?.id, lessonId, completed);
@@ -161,7 +197,12 @@ export default function CursoPage() {
             lessons: module.lessons.map((lesson) => (lesson.id === lessonId ? { ...lesson, completed } : lesson)),
           })),
         });
+
         success(completed ? 'Aula marcada como concluída' : 'Aula desmarcada como concluída');
+
+        if (completed && pendingLessonAction) {
+          setCourseCompleted(true);
+        }
       } else {
         showError(response.error || 'Erro ao atualizar progresso da aula');
       }
@@ -172,23 +213,17 @@ export default function CursoPage() {
     }
   };
 
-  const generateCertificate = async (courseId: string) => {
-    try {
-      const response = await apiService.generateCertificate(courseId);
-      if (response.success && response.data) {
-        toast({
-          title: 'Sucesso',
-          description: 'Certificado gerado com sucesso',
-        });
-        loadCourseDetails(courseId);
-      }
-    } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao gerar certificado',
-        variant: 'destructive',
-      });
+  const handleConfirmCompletion = async () => {
+    if (pendingLessonAction) {
+      await executeMarkLessonComplete(pendingLessonAction.lessonId, pendingLessonAction.completed);
+      setPendingLessonAction(null);
     }
+    setShowConfirmDialog(false);
+  };
+
+  const handleCancelCompletion = () => {
+    setPendingLessonAction(null);
+    setShowConfirmDialog(false);
   };
 
   if (loading) {
@@ -220,10 +255,6 @@ export default function CursoPage() {
     );
   }
 
-  const progressPercentage = selectedCourse.progress
-    ? (selectedCourse.progress.completedLessons / selectedCourse.progress.totalLessons) * 100
-    : 0;
-
   const allLessons = selectedCourse.modules?.flatMap((module) => module.lessons) || [];
   const currentLessonIndex = selectedLesson ? allLessons.findIndex((lesson) => lesson.id === selectedLesson.id) : -1;
 
@@ -231,6 +262,30 @@ export default function CursoPage() {
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
+
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Finalizar Curso</DialogTitle>
+              <DialogDescription>
+                Esta é a última aula do curso. Ao concluí-la, seu certificado será emitido automaticamente e não será
+                mais possível alterar o progresso.
+                <br />
+                <br />
+                Você poderá rever todas as aulas a qualquer momento.
+                <br />
+                <br />
+                Deseja prosseguir?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCancelCompletion}>
+                Não
+              </Button>
+              <Button onClick={handleConfirmCompletion}>Sim, finalizar curso</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           {/* Header */}
@@ -318,35 +373,37 @@ export default function CursoPage() {
                           <div className="bg-[#2D2D2D] rounded-2xl text-white p-4">
                             <div className="grid md:flex items-center md:justify-between mb-3">
                               <h3 className="text-lg font-semibold md:w-[75%] mb-2 md:mb-0">{selectedLesson.title}</h3>
-                              <Button
-                                size="sm"
-                                variant={selectedLesson.completed ? 'default' : 'secondary'}
-                                disabled={loadingMarkLesson}
-                                onClick={() => markLessonComplete(selectedLesson.id, !selectedLesson.completed)}
-                                className={
-                                  selectedLesson.completed ? 'bg-green-600 hover:bg-green-700 cursor-pointer' : ''
-                                }
-                              >
-                                {selectedLesson.completed ? (
-                                  <>
-                                    {!loadingMarkLesson ? (
-                                      <CheckCircle className="w-4 h-4 mr-1" />
-                                    ) : (
-                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    )}
-                                    Concluída
-                                  </>
-                                ) : (
-                                  <>
-                                    {!loadingMarkLesson ? (
-                                      <PlayCircle className="w-4 h-4 mr-1" />
-                                    ) : (
-                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    )}
-                                    Marcar como Concluída
-                                  </>
-                                )}
-                              </Button>
+                              {!courseCompleted && (
+                                <Button
+                                  size="sm"
+                                  variant={selectedLesson.completed ? 'default' : 'secondary'}
+                                  disabled={loadingMarkLesson}
+                                  onClick={() => markLessonComplete(selectedLesson.id, !selectedLesson.completed)}
+                                  className={
+                                    selectedLesson.completed ? 'bg-green-600 hover:bg-green-700 cursor-pointer' : ''
+                                  }
+                                >
+                                  {selectedLesson.completed ? (
+                                    <>
+                                      {!loadingMarkLesson ? (
+                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                      ) : (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                      )}
+                                      Concluída
+                                    </>
+                                  ) : (
+                                    <>
+                                      {!loadingMarkLesson ? (
+                                        <PlayCircle className="w-4 h-4 mr-1" />
+                                      ) : (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                      )}
+                                      Marcar como Concluída
+                                    </>
+                                  )}
+                                </Button>
+                              )}
                             </div>
 
                             {/* Navigation */}
@@ -433,11 +490,10 @@ export default function CursoPage() {
                 )}
 
                 {/* Tabs for additional content */}
-                {/* <Tabs defaultValue="materiais" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                <Tabs defaultValue="materiais" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="materiais">Materiais</TabsTrigger>
                     <TabsTrigger value="duvidas">Dúvidas</TabsTrigger>
-                    <TabsTrigger value="certificado">Certificado</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="materiais" className="space-y-4">
@@ -540,65 +596,7 @@ export default function CursoPage() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-
-                  <TabsContent value="certificado" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Certificado de Conclusão</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {selectedCourse.certificate ? (
-                          <div className="text-center space-y-4">
-                            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                              <Award className="w-12 h-12 text-green-600" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-semibold text-green-800">Parabéns!</h3>
-                              <p className="text-gray-600">Você concluiu este curso com sucesso</p>
-                              <p className="text-sm text-gray-500">
-                                Certificado emitido em{' '}
-                                {new Date(selectedCourse.certificate.issuedAt).toLocaleDateString('pt-BR')}
-                              </p>
-                            </div>
-                            <Button
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => window.open(selectedCourse.certificate?.url, '_blank')}
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Baixar Certificado PDF
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="text-center space-y-4">
-                            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                              <Award className="w-12 h-12 text-gray-400" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-600">Certificado não disponível</h3>
-                              <p className="text-gray-500">Complete todas as aulas para receber seu certificado</p>
-                              <div className="mt-4">
-                                <Progress value={progressPercentage} className="w-full max-w-xs mx-auto" />
-                                <p className="text-sm text-gray-500 mt-2">
-                                  {selectedCourse.progress?.completedLessons || 0} de{' '}
-                                  {selectedCourse.progress?.totalLessons || 0} aulas concluídas
-                                </p>
-                              </div>
-                              {progressPercentage === 100 && (
-                                <Button
-                                  className="mt-4"
-                                  onClick={() => generateCertificate(selectedCourse.id.toString())}
-                                >
-                                  <Award className="w-4 h-4 mr-2" />
-                                  Gerar Certificado
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs> */}
+                </Tabs>
               </div>
             </div>
           </main>
