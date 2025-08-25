@@ -5,6 +5,7 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { SidebarProvider } from '@/contexts/sidebar-context';
 import { ToastProvider } from '@/contexts/toast-context';
+import { CartProvider } from '@/contexts/cart-context';
 
 export const metadata: Metadata = {
   title: 'Plataforma EAD',
@@ -26,7 +27,9 @@ html {
       <body>
         <AuthProvider>
           <ToastProvider>
-            <SidebarProvider>{children}</SidebarProvider>
+            <SidebarProvider>
+              <CartProvider>{children}</CartProvider>
+            </SidebarProvider>
           </ToastProvider>
         </AuthProvider>
       </body>

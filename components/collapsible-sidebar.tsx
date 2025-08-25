@@ -1,32 +1,57 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Box,
-  LayoutGrid,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  X,
-  BookOpen,
-  ShoppingCart,
-  User,
-  NotebookText,
-} from 'lucide-react';
+import { LayoutGrid, ChevronLeft, ChevronRight, BookOpen, ShoppingCart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
+import { useCart } from '@/contexts/cart-context';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSidebar } from '@/contexts/sidebar-context';
+import { MobileHeader } from './mobile-header';
 
 interface SidebarProps {
   className?: string;
   onToggle?: (isCollapsed: boolean) => void;
 }
 
+function useSidebarState() {
+  const [isCollapsed, setIsCollapsed] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+
+  const [isMobileOpen, setIsMobileOpen] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-mobile-open');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
+
+  React.useEffect(() => {
+    localStorage.setItem('sidebar-mobile-open', JSON.stringify(isMobileOpen));
+  }, [isMobileOpen]);
+
+  return {
+    isCollapsed,
+    setIsCollapsed,
+    isMobileOpen,
+    setIsMobileOpen,
+  };
+}
+
 export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
-  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
+  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebarState();
   const { user, logout } = useAuth();
+  const { getTotalItems } = useCart();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -45,15 +70,22 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
     setIsMobileOpen(false);
   };
 
+  const handleCartClick = () => {
+    if (pathname === '/aluno/comprar-cursos') {
+      router.push('/aluno/comprar-cursos');
+    } else {
+      handleNavigation('/aluno/comprar-cursos');
+    }
+  };
+
   React.useEffect(() => {
     if (isMobileOpen) {
-      document.body.style.overflow = 'hidden'; // trava o scroll
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = ''; // volta ao normal
+      document.body.style.overflow = '';
     }
   }, [isMobileOpen]);
 
-  // Menu items baseado no role do usuário
   const getMenuItems = () => {
     if (user?.role === 'ADMIN') {
       return [
@@ -64,7 +96,13 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
       return [
         { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard', path: '/aluno' },
         { id: 'meus-cursos', icon: BookOpen, label: 'Meus Cursos', path: '/aluno/meus-cursos' },
-        { id: 'comprar-cursos', icon: ShoppingCart, label: 'Comprar Cursos', path: '/aluno/comprar-cursos' },
+        {
+          id: 'comprar-cursos',
+          icon: ShoppingCart,
+          label: 'Comprar Cursos',
+          path: '/aluno/comprar-cursos',
+          badge: getTotalItems() > 0 ? getTotalItems() : undefined,
+        },
         { id: 'perfil', icon: User, label: 'Perfil', path: '/aluno/perfil' },
       ];
     }
@@ -73,31 +111,20 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
   const menuItems = getMenuItems();
 
-  // Determinar item ativo baseado na URL atual
   const getActiveItem = () => {
     const currentItem = menuItems.find((item) => item.path === pathname);
-    return currentItem?.id || '';
+    return currentItem?.id || 'dashboard';
   };
 
   const activeItem = getActiveItem();
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <div className='py-4 px-2 top-[-2px] fixed z-50 md:hidden '>
-        <Button
-          variant="ghost"
-          size="icon"
-          className=" h-10 w-10 bg-[#2D2D2D] text-white"
-          onClick={handleMobileToggle}
-        >
-          {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
+      <MobileHeader onMenuToggle={handleMobileToggle} />
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black opacity-90 z-41 md:hidden" onClick={() => setIsMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black/50 z-45 md:hidden" onClick={() => setIsMobileOpen(false)} />
       )}
 
       {/* Desktop Sidebar */}
@@ -120,7 +147,6 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
         {/* Logo/Brand */}
         <div className="flex items-center justify-center h-16 px-4">
-          <NotebookText className="h-6 w-6 text-white" />
           {!isCollapsed && (
             <div className="ml-3">
               <span className="text-lg font-semibold">LOGO</span>
@@ -136,13 +162,14 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
+            const isCartItem = item.id === 'comprar-cursos';
 
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavigation(item.path)}
+                onClick={() => (isCartItem ? handleCartClick() : handleNavigation(item.path))}
                 className={cn(
-                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer',
+                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer relative',
                   isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white',
                   isCollapsed ? 'justify-center' : 'justify-start'
                 )}
@@ -150,6 +177,17 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 {!isCollapsed && <span className="ml-3 text-sm font-medium">{item.label}</span>}
+                {item.badge && (
+                  <Badge
+                    variant="destructive"
+                    className={cn(
+                      'ml-auto h-5 min-w-5 px-1.5 text-xs flex items-center justify-center',
+                      isCollapsed && 'absolute -top-1 -right-1'
+                    )}
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
               </button>
             );
           })}
@@ -157,22 +195,6 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
         {/* Bottom Navigation */}
         <div className="px-3 pb-6 pt-4 space-y-1">
-          {/* <button
-            onClick={() => handleNavigation(`/${user?.role?.toLowerCase()}/configuracoes`)}
-            className={cn(
-              'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200',
-              pathname?.includes('/configuracoes')
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-              isCollapsed ? 'justify-center' : 'justify-start'
-            )}
-            title={isCollapsed ? 'Configurações' : undefined}
-          >
-            <Settings className="h-5 w-5 flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 text-sm font-medium">Configurações</span>}
-          </button> */}
-
-          {/* User Info and Logout */}
           {!isCollapsed && (
             <div className="mt-4 pt-4 ">
               <div className="px-3 py-2 text-xs text-gray-400">
@@ -181,7 +203,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
               </div>
               <button
                 onClick={logout}
-                className="w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 mt-2 cursor-pointer"
+                className="w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 mt-2"
               >
                 <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -199,7 +221,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
           {isCollapsed && (
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center px-3 py-3 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200 cursor-pointer"
+              className="w-full flex items-center justify-center px-3 py-3 rounded-lg text-left transition-colors duration-200 text-red-300 hover:bg-red-900/20 hover:text-red-200"
               title="Sair"
             >
               <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,29 +240,16 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-[#2D2D2D] text-white transform transition-transform duration-100 ease-in-out md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-[#2D2D2D] text-white transform transition-transform duration-300 ease-in-out md:hidden',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo/Brand */}
-        <div className="flex items-center justify-between h-16 px-4">
-          <div className="flex items-center">
-            <NotebookText className="h-6 w-6 text-white" />
-            <div className="ml-3">
-              <span className="text-lg font-semibold">LOGO</span>
-              <div className="text-xs text-gray-400">
-                {user?.role === 'STUDENT' ? 'Área do aluno' : 'Área do admin'}
-              </div>
-            </div>
+        <div className="flex items-center justify-center h-16 px-4 mt-14">
+          <div className="text-center">
+            <span className="text-lg font-semibold">LOGO</span>
+            <div className="text-xs text-gray-400">{user?.role === 'STUDENT' ? 'Área do aluno' : 'Área do admin'}</div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileOpen(false)}
-            className="text-white hover:bg-gray-700"
-          >
-            <X className="h-5 w-5" />
-          </Button>
         </div>
 
         {/* Mobile Navigation */}
@@ -248,18 +257,27 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
+            const isCartItem = item.id === 'comprar-cursos';
 
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavigation(item.path)}
+                onClick={() => (isCartItem ? handleCartClick() : handleNavigation(item.path))}
                 className={cn(
-                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer justify-start',
+                  'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer relative',
                   isActive ? 'bg-gray-500 text-white' : 'text-white hover:bg-gray-500 hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 <span className="ml-3 text-sm font-medium">{item.label}</span>
+                {item.badge && (
+                  <Badge
+                    variant="destructive"
+                    className="ml-auto h-5 min-w-5 px-1.5 text-xs flex items-center justify-center"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
               </button>
             );
           })}
@@ -267,20 +285,6 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
 
         {/* Mobile Bottom Navigation */}
         <div className="px-3 pb-6 pt-4 space-y-1">
-          {/* <button
-            onClick={() => handleNavigation(`/${user?.role?.toLowerCase()}/configuracoes`)}
-            className={cn(
-              'w-full flex items-center px-3 py-3 rounded-lg text-left transition-colors duration-200',
-              pathname?.includes('/configuracoes')
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            )}
-          >
-            <Settings className="h-5 w-5 flex-shrink-0" />
-            <span className="ml-3 text-sm font-medium">Configurações</span>
-          </button> */}
-
-          {/* Mobile User Info and Logout */}
           <div className="mt-4 pt-4">
             <div className="px-3 py-2 text-xs text-gray-400">
               <div className="font-medium text-white truncate">{user?.name}</div>

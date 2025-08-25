@@ -28,6 +28,7 @@ export default function MeusCursosPage() {
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isSidebarCollapsed,
     'md:ml-80': !isSidebarCollapsed,
+    'pt-14 md:pt-0': true, // Add top padding for mobile header
   });
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function MeusCursosPage() {
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           {/* Header */}
-          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+          <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">

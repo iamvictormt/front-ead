@@ -62,6 +62,21 @@ interface Course {
   studentsCount: number;
 }
 
+interface CourseAvailable {
+  id: number
+  title: string
+  description: string
+  price: number
+  thumbnailUrl: string
+  createdAt: string
+  updatedAt: string
+  instructor: string
+  category: string
+  rating: number
+  studentsCount: number
+}
+
+
 interface RecentActivity {
   type: string;
   courseId: number;
@@ -298,7 +313,7 @@ class ApiService {
     priceRange?: string;
     page?: number;
     limit?: number;
-  }): Promise<ApiResponse<{ courses: Course[]; total: number; page: number; totalPages: number }>> {
+  }): Promise<ApiResponse<{ courses: CourseAvailable[]; total: number; page: number; totalPages: number }>> {
     const searchParams = new URLSearchParams();
 
     if (params?.search) searchParams.append('search', params.search);
@@ -453,4 +468,5 @@ export type {
   MyCourse,
   DashboardStats,
   RecentActivity,
+  CourseAvailable
 };

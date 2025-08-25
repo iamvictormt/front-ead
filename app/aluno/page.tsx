@@ -9,10 +9,9 @@ import { useSidebar } from '@/contexts/sidebar-context';
 import { apiService, Course, DashboardStats, RecentActivity } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 import Link from 'next/link';
-import { Album, BadgeCheck, Book, ShieldCheck } from 'lucide-react';
 
 export default function AlunoDashboard() {
-  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { isCollapsed } = useSidebar();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
   const { user } = useAuth();
 
@@ -25,6 +24,7 @@ export default function AlunoDashboard() {
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isSidebarCollapsed,
     'md:ml-80': !isSidebarCollapsed,
+    'pt-14 md:pt-0': true,
   });
 
   useEffect(() => {
@@ -53,10 +53,6 @@ export default function AlunoDashboard() {
     }
   };
 
-  const handleContinueCourse = (courseId: number) => {
-    window.location.href = `/aluno/curso/${courseId}`;
-  };
-
   if (loading) {
     return (
       <ProtectedRoute allowedRoles={['STUDENT']}>
@@ -78,9 +74,9 @@ export default function AlunoDashboard() {
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
 
-        <div className={contentMargin}>
+        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           {/* Header */}
-          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+          <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">

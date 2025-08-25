@@ -77,7 +77,6 @@ const CommentItem = ({
   onEditComment: (commentId: number) => void;
   onDeleteComment: (commentId: number) => void;
 }) => {
-  console.log(currentUser?.id);
   const isAdmin = comment.user?.role === 'ADMIN';
   const isOwner = comment.user?.id === currentUser?.id;
   const canReply = depth === 0 && currentUser?.role === 'ADMIN' && !isOwner;
@@ -679,7 +678,7 @@ export default function CursoPage() {
         </Dialog>
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
-          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+          <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">

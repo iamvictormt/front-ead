@@ -2,166 +2,106 @@
 
 import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
 import { ProtectedRoute } from '@/components/protected-route';
-import { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
+import { useState, useEffect } from 'react';
+import { useCart } from '@/contexts/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShoppingCart, Star, Clock, Users, Filter, Heart } from 'lucide-react';
+import { Search, Star, Users, ShoppingCart, Loader2, Check } from 'lucide-react';
 import clsx from 'clsx';
-import { useSidebar } from '@/contexts/sidebar-context';
+import { apiService, type CourseAvailable } from '@/lib/api';
+import { useToast } from '@/contexts/toast-context';
+import { CartSidebar } from '@/components/cart-sidebar';
 
 export default function ComprarCursosPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('todos');
-  const [priceFilter, setPriceFilter] = useState('todos');
-  const { user } = useAuth();
+  const [courses, setCourses] = useState<CourseAvailable[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { success, error: showError } = useToast();
+  const { addToCart, isInCart } = useCart();
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isSidebarCollapsed,
     'md:ml-80': !isSidebarCollapsed,
+    'pt-14 md:pt-0': true, // Add top padding for mobile header
   });
 
-  // Mock data para cursos disponíveis
-  const cursosDisponiveis = [
-    {
-      id: 1,
-      titulo: 'Vue.js Completo',
-      descricao: 'Aprenda Vue.js do básico ao avançado com projetos práticos',
-      instrutor: 'Carlos Mendes',
-      preco: 299.9,
-      precoOriginal: 399.9,
-      rating: 4.9,
-      totalAvaliacoes: 1234,
-      alunos: 5678,
-      duracao: '14h 30min',
-      categoria: 'Frontend',
-      nivel: 'Intermediário',
-      promocao: true,
-      bestseller: true,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=Vue.js',
-    },
-    {
-      id: 2,
-      titulo: 'Python Machine Learning',
-      descricao: 'Domine Machine Learning com Python e bibliotecas como scikit-learn',
-      instrutor: 'Dra. Ana Silva',
-      preco: 449.9,
-      precoOriginal: null,
-      rating: 4.8,
-      totalAvaliacoes: 892,
-      alunos: 3421,
-      duracao: '18h 45min',
-      categoria: 'Data Science',
-      nivel: 'Avançado',
-      promocao: false,
-      bestseller: false,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=Python+ML',
-    },
-    {
-      id: 3,
-      titulo: 'Design System com Figma',
-      descricao: 'Crie design systems profissionais e consistentes',
-      instrutor: 'Marina Costa',
-      preco: 199.9,
-      precoOriginal: 299.9,
-      rating: 4.7,
-      totalAvaliacoes: 567,
-      alunos: 2134,
-      duracao: '8h 15min',
-      categoria: 'Design',
-      nivel: 'Iniciante',
-      promocao: true,
-      bestseller: false,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=Figma',
-    },
-    {
-      id: 4,
-      titulo: 'DevOps com Docker e Kubernetes',
-      descricao: 'Containerização e orquestração de aplicações',
-      instrutor: 'Roberto Santos',
-      preco: 399.9,
-      precoOriginal: null,
-      rating: 4.9,
-      totalAvaliacoes: 743,
-      alunos: 1876,
-      duracao: '16h 20min',
-      categoria: 'DevOps',
-      nivel: 'Avançado',
-      promocao: false,
-      bestseller: true,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=DevOps',
-    },
-    {
-      id: 5,
-      titulo: 'React Native Mobile',
-      descricao: 'Desenvolva apps mobile multiplataforma com React Native',
-      instrutor: 'Felipe Oliveira',
-      preco: 349.9,
-      precoOriginal: 449.9,
-      rating: 4.6,
-      totalAvaliacoes: 456,
-      alunos: 1543,
-      duracao: '12h 50min',
-      categoria: 'Mobile',
-      nivel: 'Intermediário',
-      promocao: true,
-      bestseller: false,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=React+Native',
-    },
-    {
-      id: 6,
-      titulo: 'Cybersecurity Fundamentals',
-      descricao: 'Fundamentos de segurança cibernética e ethical hacking',
-      instrutor: 'Lucas Ferreira',
-      preco: 499.9,
-      precoOriginal: null,
-      rating: 4.8,
-      totalAvaliacoes: 321,
-      alunos: 987,
-      duracao: '20h 10min',
-      categoria: 'Segurança',
-      nivel: 'Intermediário',
-      promocao: false,
-      bestseller: false,
-      thumbnail: '/placeholder.svg?height=200&width=300&text=Cybersecurity',
-    },
-  ];
+  useEffect(() => {
+    loadCoursesAvailable();
 
-  const categorias = ['todos', 'Frontend', 'Backend', 'Mobile', 'Data Science', 'Design', 'DevOps', 'Segurança'];
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
 
-  const filteredCursos = cursosDisponiveis.filter((curso) => {
-    const matchesSearch =
-      curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.instrutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+  const loadCoursesAvailable = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getAvailableCourses();
+      if (response.success && response.data) {
+        setCourses(response.data.courses);
+      } else {
+        showError(response.error || 'Erro ao carregar detalhes do curso');
+      }
+    } catch (error) {
+      showError('Erro ao carregar detalhes do curso');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const matchesCategory = selectedCategory === 'todos' || curso.categoria === selectedCategory;
-
-    const matchesPrice =
-      priceFilter === 'todos' ||
-      (priceFilter === 'gratis' && curso.preco === 0) ||
-      (priceFilter === 'ate-200' && curso.preco <= 200) ||
-      (priceFilter === '200-400' && curso.preco > 200 && curso.preco <= 400) ||
-      (priceFilter === 'acima-400' && curso.preco > 400);
-
-    return matchesSearch && matchesCategory && matchesPrice;
+  const filteredCourses = courses.filter((course) => {
+    const searchLower = searchTerm.toLowerCase();
+    return course.title.toLowerCase().includes(searchLower) || course.instructor.toLowerCase().includes(searchLower);
   });
+
+  const formatPrice = (price: number) => {
+    return `R$ ${price.toFixed(2).replace('.', ',')}`;
+  };
+
+  const handleAddToCart = (course: CourseAvailable) => {
+    const cartItem = {
+      id: course.id.toString(),
+      title: course.title,
+      price: course.price,
+      thumbnailUrl: course.thumbnailUrl || '/placeholder.svg',
+      instructor: {
+        name: course.instructor,
+        avatar: '/placeholder.svg',
+      },
+    };
+
+    addToCart(cartItem);
+    success('Curso adicionado ao carrinho!');
+  };
+
+  if (loading) {
+    return (
+      <ProtectedRoute allowedRoles={['STUDENT']}>
+        <div className="min-h-screen bg-background flex items-center justify-center pt-14 md:pt-0">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Carregando cursos...</span>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
+        <CartSidebar />
 
-        <div className={contentMargin}>
+        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           {/* Header */}
-          <header className="md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+          <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
             <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
-                  Comprar Cursos
+                  Comprar cursos
                 </h1>
               </div>
             </div>
@@ -170,162 +110,105 @@ export default function ComprarCursosPage() {
           {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
-              <div className="mx-auto">
-                {/* Search and Filters */}
-                <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="Buscar cursos..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">Categoria</label>
-                        <div className="flex flex-wrap gap-2">
-                          {categorias.map((categoria) => (
-                            <Button
-                              key={categoria}
-                              variant={selectedCategory === categoria ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => setSelectedCategory(categoria)}
-                              className="capitalize"
-                            >
-                              {categoria}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="sm:w-48">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">Preço</label>
-                        <div className="space-y-2">
-                          <Button
-                            variant={priceFilter === 'todos' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPriceFilter('todos')}
-                            className="w-full justify-start"
-                          >
-                            Todos os preços
-                          </Button>
-                          <Button
-                            variant={priceFilter === 'ate-200' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPriceFilter('ate-200')}
-                            className="w-full justify-start"
-                          >
-                            Até R$ 200
-                          </Button>
-                          <Button
-                            variant={priceFilter === '200-400' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPriceFilter('200-400')}
-                            className="w-full justify-start"
-                          >
-                            R$ 200 - R$ 400
-                          </Button>
-                          <Button
-                            variant={priceFilter === 'acima-400' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPriceFilter('acima-400')}
-                            className="w-full justify-start"
-                          >
-                            Acima de R$ 400
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+              <div className="mx-auto space-y-6">
+                {/* Results count */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-lg">
+                      {filteredCourses.length} curso{filteredCourses.length !== 1 ? 's' : ''} disponív
+                      {filteredCourses.length !== 1 ? 'eis' : 'el'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Results Count */}
-                <div className="mb-6">
-                  <p className="text-gray-600">
-                    {filteredCursos.length} curso{filteredCursos.length !== 1 ? 's' : ''} encontrado
-                    {filteredCursos.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
+                {filteredCourses.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredCourses.map((course) => {
+                      const inCart = isInCart(course.id.toString());
 
-                {/* Courses Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredCursos.map((curso) => (
-                    <div
-                      key={curso.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                    >
-                      {/* Course Image */}
-                      <div className="relative">
-                        <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600"></div>
-                        <div className="absolute top-3 left-3 flex gap-2">
-                          {curso.bestseller && <Badge className="bg-orange-500 text-white">Bestseller</Badge>}
-                          {curso.promocao && <Badge className="bg-red-500 text-white">Promoção</Badge>}
-                        </div>
-                        <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:bg-gray-50">
-                          <Heart className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </div>
-
-                      {/* Course Content */}
-                      <div className="p-4">
-                        <div className="mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">{curso.titulo}</h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">{curso.descricao}</p>
-                        </div>
-
-                        <div className="text-sm text-gray-500 mb-3">Por {curso.instrutor}</div>
-
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                          <div className="flex items-center">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                            <span className="font-medium text-gray-900">{curso.rating}</span>
-                            <span className="ml-1">({curso.totalAvaliacoes})</span>
+                      return (
+                        <div
+                          key={course.id}
+                          className="bg-card rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                        >
+                          {/* Course thumbnail */}
+                          <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20">
+                            <img
+                              src={course.thumbnailUrl || '/placeholder.svg'}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-4 right-4">
+                              <Badge variant="secondary" className="bg-white/90 text-foreground">
+                                {course.category}
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="flex items-center">
-                            <Users className="w-4 h-4 mr-1" />
-                            {curso.alunos.toLocaleString()}
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
-                            {curso.duracao}
+
+                          {/* Course content */}
+                          <div className="p-6">
+                            <h3 className="text-xl font-bold text-card-foreground mb-2 line-clamp-2">{course.title}</h3>
+
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{course.description}</p>
+
+                            <div className="text-sm text-muted-foreground mb-4">
+                              Instrutor: <span className="font-medium text-card-foreground">{course.instructor}</span>
+                            </div>
+
+                            {/* Course stats */}
+                            <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                <span className="font-medium text-card-foreground">{course.rating}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                <span>{course.studentsCount} alunos</span>
+                              </div>
+                            </div>
+
+                            {/* Price and buy button */}
+                            <div className="flex items-center justify-between">
+                              <div className="text-2xl font-bold text-primary">{formatPrice(course.price)}</div>
+                              <Button
+                                className={clsx(
+                                  'transition-all duration-200',
+                                  inCart
+                                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                                    : 'bg-accent hover:bg-accent/90 text-accent-foreground'
+                                )}
+                                onClick={() => handleAddToCart(course)}
+                                disabled={inCart}
+                              >
+                                {inCart ? (
+                                  <>
+                                    <Check className="h-4 w-4 mr-2" />
+                                    No Carrinho
+                                  </>
+                                ) : (
+                                  <>
+                                    <ShoppingCart className="h-4 w-4 mr-2" />
+                                    Comprar
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         </div>
-
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-2xl font-bold text-gray-900">
-                              R$ {curso.preco.toFixed(2).replace('.', ',')}
-                            </span>
-                            {curso.precoOriginal && (
-                              <span className="text-sm text-gray-500 line-through">
-                                R$ {curso.precoOriginal.toFixed(2).replace('.', ',')}
-                              </span>
-                            )}
-                          </div>
-                          <Badge variant="outline" className="text-xs">
-                            {curso.nivel}
-                          </Badge>
-                        </div>
-
-                        <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          Comprar Agora
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {filteredCursos.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="text-gray-500 mb-4">
-                      <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum curso encontrado</p>
-                      <p className="text-sm">Tente ajustar os filtros de busca</p>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="max-w-md mx-auto">
+                      <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h3 className="text-xl font-semibold text-card-foreground mb-2">Nenhum curso encontrado</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Não encontramos cursos que correspondam à sua busca. Tente usar termos diferentes.
+                      </p>
+                      <Button variant="outline" onClick={() => setSearchTerm('')}>
+                        Ver todos os cursos
+                      </Button>
                     </div>
                   </div>
                 )}
