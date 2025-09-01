@@ -26,6 +26,7 @@ import {
   Trash2,
   MoreVertical,
   Edit,
+  Loader,
 } from 'lucide-react';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
@@ -895,7 +896,7 @@ export default function CursoPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {selectedCourse.modules
+                          {/* {selectedCourse.modules
                             ?.flatMap((module) => module.lessons.filter((lesson) => lesson.pdfUrl))
                             .map((lesson) => (
                               <div
@@ -920,7 +921,7 @@ export default function CursoPage() {
                                   Download
                                 </Button>
                               </div>
-                            ))}
+                            ))} */}
                           <div className="text-center py-12">
                             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                             <p className="text-muted-foreground">Nenhum material anexado.</p>
@@ -945,13 +946,15 @@ export default function CursoPage() {
                                 <p className="text-sm text-primary dark:text-primary-foreground font-medium mb-2">
                                   Comentários para: <strong>{selectedLesson.title}</strong>
                                 </p>
-                                <Button
+        
+                                                              <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => loadLessonComments(selectedLesson.id)}
-                                  className="border-primary/20 dark:border-primary/30 text-primary dark:text-primary-foreground hover:bg-primary/10 dark:hover:bg-primary/20"
                                 >
-                                  Carregar Comentários
+                                  <Loader className="w-4 h-4 mr-1" />
+                                                                    Carregar Comentários
+
                                 </Button>
                               </div>
 
