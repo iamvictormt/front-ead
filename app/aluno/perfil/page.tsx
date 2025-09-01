@@ -1,166 +1,166 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState, useEffect } from "react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { User, Mail, Award, Camera, Save, Edit, Download } from "lucide-react"
-import clsx from "clsx"
-import { useSidebar } from "@/contexts/sidebar-context"
-import { apiService } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { User, Mail, Award, Camera, Save, Edit, Download } from 'lucide-react';
+import clsx from 'clsx';
+import { useSidebar } from '@/contexts/sidebar-context';
+import { apiService } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PerfilPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar()
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed)
-  const [isEditing, setIsEditing] = useState(false)
-  const { user, updateProfile, isLoading } = useAuth()
-  const [certificates, setCertificates] = useState([])
-  const [loadingCertificates, setLoadingCertificates] = useState(false)
-  const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null)
-  const { toast } = useToast()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
+  const [isEditing, setIsEditing] = useState(false);
+  const { user, updateProfile, isLoading } = useAuth();
+  const [certificates, setCertificates] = useState([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
+  const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
-    "md:ml-42": isSidebarCollapsed,
-    "md:ml-80": !isSidebarCollapsed,
-  })
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isSidebarCollapsed,
+    'md:ml-80': !isSidebarCollapsed,
+  });
 
   const [profileData, setProfileData] = useState({
-    nome: user?.name || "",
-    email: user?.email || "",
-  })
+    nome: user?.name || '',
+    email: user?.email || '',
+  });
 
   useEffect(() => {
     if (user) {
       setProfileData({
-        nome: user.name || "",
-        email: user.email || "",
-      })
+        nome: user.name || '',
+        email: user.email || '',
+      });
     }
-  }, [user])
+  }, [user]);
 
   const conquistas = [
     {
       id: 1,
-      titulo: "Primeiro Curso Concluído",
-      descricao: "Completou seu primeiro curso na plataforma",
-      data: "2024-01-10",
-      icone: "🎓",
+      titulo: 'Primeiro Curso Concluído',
+      descricao: 'Completou seu primeiro curso na plataforma',
+      data: '2024-01-10',
+      icone: '🎓',
     },
     {
       id: 2,
-      titulo: "Estudante Dedicado",
-      descricao: "Completou 20+ horas de estudo",
-      data: "2024-01-25",
-      icone: "📚",
+      titulo: 'Estudante Dedicado',
+      descricao: 'Completou 20+ horas de estudo',
+      data: '2024-01-25',
+      icone: '📚',
     },
     {
       id: 3,
-      titulo: "Meta Semanal",
-      descricao: "Completou 5 lições em uma semana",
-      data: "2024-02-01",
-      icone: "🎯",
+      titulo: 'Meta Semanal',
+      descricao: 'Completou 5 lições em uma semana',
+      data: '2024-02-01',
+      icone: '🎯',
     },
-  ]
+  ];
 
   useEffect(() => {
     if (user) {
-      loadCertificates()
+      loadCertificates();
     }
-  }, [user])
+  }, [user]);
 
   const loadCertificates = async () => {
-    setLoadingCertificates(true)
+    setLoadingCertificates(true);
     try {
-      const response = await apiService.getCertificates()
+      const response = await apiService.getCertificates();
       if (response.success && response.data) {
-        setCertificates(response.data)
+        setCertificates(response.data);
       } else {
         toast({
-          title: "Erro",
-          description: "Não foi possível carregar os certificados",
-          variant: "destructive",
-        })
+          title: 'Erro',
+          description: 'Não foi possível carregar os certificados',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      console.error("Error loading certificates:", error)
+      console.error('Error loading certificates:', error);
       toast({
-        title: "Erro",
-        description: "Erro ao carregar certificados",
-        variant: "destructive",
-      })
+        title: 'Erro',
+        description: 'Erro ao carregar certificados',
+        variant: 'destructive',
+      });
     } finally {
-      setLoadingCertificates(false)
+      setLoadingCertificates(false);
     }
-  }
+  };
 
   const handleDownloadCertificate = async (courseId: string, courseName: string) => {
-    setDownloadingCertificate(courseId)
+    setDownloadingCertificate(courseId);
     try {
-      const response = await apiService.downloadCertificate(courseId)
+      const response = await apiService.downloadCertificate(courseId);
       if (response.success && response.data) {
-        const url = window.URL.createObjectURL(response.data)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `certificado-${courseName.replace(/\s+/g, "-").toLowerCase()}.pdf`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
+        const url = window.URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `certificado-${courseName.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
         toast({
-          title: "Sucesso",
-          description: "Certificado baixado com sucesso!",
-        })
+          title: 'Sucesso',
+          description: 'Certificado baixado com sucesso!',
+        });
       } else {
         toast({
-          title: "Erro",
-          description: "Não foi possível baixar o certificado",
-          variant: "destructive",
-        })
+          title: 'Erro',
+          description: 'Não foi possível baixar o certificado',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      console.error("Error downloading certificate:", error)
+      console.error('Error downloading certificate:', error);
       toast({
-        title: "Erro",
-        description: "Erro ao baixar certificado",
-        variant: "destructive",
-      })
+        title: 'Erro',
+        description: 'Erro ao baixar certificado',
+        variant: 'destructive',
+      });
     } finally {
-      setDownloadingCertificate(null)
+      setDownloadingCertificate(null);
     }
-  }
+  };
 
   const handleSave = async () => {
     const result = await updateProfile({
       name: profileData.nome,
       email: profileData.email,
-    })
+    });
 
     if (result.success) {
-      setIsEditing(false)
+      setIsEditing(false);
     } else {
-      console.error(result.error)
+      console.error(result.error);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setProfileData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+  };
 
   if (isLoading || !user) {
     return (
-      <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <ProtectedRoute allowedRoles={['STUDENT']}>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
           <div className={contentMargin}>
@@ -173,11 +173,11 @@ export default function PerfilPage() {
           </div>
         </div>
       </ProtectedRoute>
-    )
+    );
   }
 
   return (
-    <ProtectedRoute allowedRoles={["STUDENT"]}>
+    <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
 
@@ -193,8 +193,8 @@ export default function PerfilPage() {
                   onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
                   className={
                     isEditing
-                      ? "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
-                      : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                      ? 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700'
+                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
                   }
                 >
                   {isEditing ? (
@@ -218,10 +218,25 @@ export default function PerfilPage() {
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
                 <Tabs defaultValue="perfil" className="md:space-y-8 space-y-20">
-                  <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
-                    <TabsTrigger value="perfil">Informações Pessoais</TabsTrigger>
-                    <TabsTrigger value="conquistas">Conquistas</TabsTrigger>
-                    <TabsTrigger value="certificados">Certificados</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 bg-gray-100 dark:bg-gray-800">
+                    <TabsTrigger
+                      value="perfil"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Informações Pessoais
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="conquistas"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Conquistas
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="certificados"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Certificados
+                    </TabsTrigger>
                   </TabsList>
 
                   {/* Perfil Tab */}
@@ -235,9 +250,9 @@ export default function PerfilPage() {
                               <AvatarImage src="/placeholder.svg?height=96&width=96" />
                               <AvatarFallback className="text-2xl">
                                 {profileData.nome
-                                  .split(" ")
+                                  .split(' ')
                                   .map((n) => n[0])
-                                  .join("")}
+                                  .join('')}
                               </AvatarFallback>
                             </Avatar>
                             {isEditing && (
@@ -274,7 +289,7 @@ export default function PerfilPage() {
                               <Input
                                 id="nome"
                                 value={profileData.nome}
-                                onChange={(e) => handleInputChange("nome", e.target.value)}
+                                onChange={(e) => handleInputChange('nome', e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
@@ -290,7 +305,7 @@ export default function PerfilPage() {
                                 id="email"
                                 type="email"
                                 value={profileData.email}
-                                onChange={(e) => handleInputChange("email", e.target.value)}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
@@ -325,7 +340,7 @@ export default function PerfilPage() {
                                 <h3 className="font-semibold text-gray-900 dark:text-white">{conquista.titulo}</h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{conquista.descricao}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                  Conquistado em {new Date(conquista.data).toLocaleDateString("pt-BR")}
+                                  Conquistado em {new Date(conquista.data).toLocaleDateString('pt-BR')}
                                 </p>
                               </div>
                             </div>
@@ -367,7 +382,7 @@ export default function PerfilPage() {
                                     Instrutor: {certificate.course.instructor}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Emitido em {new Date(certificate.issuedAt).toLocaleDateString("pt-BR")}
+                                    Emitido em {new Date(certificate.issuedAt).toLocaleDateString('pt-BR')}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Credencial: {certificate.token}
@@ -415,5 +430,5 @@ export default function PerfilPage() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
