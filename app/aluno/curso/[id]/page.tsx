@@ -274,8 +274,7 @@ const CommentItem = ({
 };
 
 export default function CursoPage() {
-  const { isCollapsed } = useSidebar();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isCollapsed);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
   const [selectedCourse, setSelectedCourse] = useState<MyCourse | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -302,8 +301,8 @@ export default function CursoPage() {
   const courseId = params.id as string;
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
-    'md:ml-42': isSidebarCollapsed,
-    'md:ml-80': !isSidebarCollapsed,
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
   });
 
   const handleReplyToggle = useCallback(
@@ -623,7 +622,7 @@ export default function CursoPage() {
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-background">
-        <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
+        <CollapsibleSidebar onToggle={setIsCollapsed} />
 
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent>
@@ -679,9 +678,9 @@ export default function CursoPage() {
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
-            <div className="bg-[#2D2D2D] md:bg-white md:rounded-lg shadow p-4 md:p-6">
+            <div className="bg-[#121F3F] md:bg-white md:rounded-lg shadow p-4 md:p-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 ml-12 md:ml-0">
+                <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white ml-12 md:ml-0">
                   Assistindo Curso
                 </h1>
                 <Button variant="outline" onClick={() => router.push('/aluno/meus-cursos')}>
@@ -732,7 +731,7 @@ export default function CursoPage() {
                   <Card className="overflow-hidden py-0">
                     <CardContent className="p-0">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-                        <div className="lg:col-span-2 bg-[#2D2D2D]">
+                        <div className="lg:col-span-2 bg-[#121F3F]">
                           <div className="aspect-video w-full">
                             {selectedLesson.videoUrl.includes('youtube') ||
                             selectedLesson.videoUrl.includes('vimeo') ? (
@@ -754,7 +753,7 @@ export default function CursoPage() {
                             )}
                           </div>
 
-                          <div className="bg-[#2D2D2D] rounded-2xl text-white p-4">
+                          <div className="bg-[#121F3F] rounded-2xl text-white p-4">
                             <div className="grid md:flex items-center md:justify-between mb-3">
                               <h3 className="text-lg font-semibold md:w-[75%] mb-2 md:mb-0">{selectedLesson.title}</h3>
                               {!courseCompleted && (
@@ -839,7 +838,7 @@ export default function CursoPage() {
                                       onClick={() => setSelectedLesson(lesson)}
                                       className={`w-full text-left px-4 py-3 cursor-pointer ${
                                         isCurrentLesson
-                                          ? 'bg-[#2D2D2D] border-r-2 border-[#2D2D2D]'
+                                          ? 'bg-[#121F3F] border-r-2 border-[#121F3F]'
                                           : 'hover:bg-gray-100 transition-colors '
                                       }`}
                                     >

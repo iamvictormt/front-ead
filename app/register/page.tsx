@@ -76,7 +76,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           {/* Logo/Brand */}
           <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-[80%] h-[80%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
+            <div className="inline-flex items-center justify-center w-[50%] h-[50%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
               <Image src="/logo-horizontal.png" alt="Logo" width={320} height={420} className="w-full h-full"/>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Crie sua conta</h1>
@@ -230,7 +230,7 @@ export default function RegisterPage() {
                 {/* Register Button */}
                 <Button
                   type="submit"
-                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
+                  className="w-full h-10 md:h-12 bg-[#121F3F] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
                   disabled={isLoading}
                 >
                   {isLoading ? (

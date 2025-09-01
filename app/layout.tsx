@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { SidebarProvider } from '@/contexts/sidebar-context';
 import { ToastProvider } from '@/contexts/toast-context';
 import { CartProvider } from '@/contexts/cart-context';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'Plataforma EAD',
@@ -25,13 +26,15 @@ html {
         `}</style>
       </head>
       <body>
-        <AuthProvider>
-          <ToastProvider>
-            <SidebarProvider>
-              <CartProvider>{children}</CartProvider>
-            </SidebarProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <ToastProvider>
+              <SidebarProvider>
+                <CartProvider>{children}</CartProvider>
+              </SidebarProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

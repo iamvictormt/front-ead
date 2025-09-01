@@ -48,7 +48,7 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
   };
 
   return (
-    <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#2D2D2D] h-14">
+    <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#121F3F] h-14">
       <div className="flex items-center justify-between h-full px-4">
         {/* Menu Button */}
         <Button

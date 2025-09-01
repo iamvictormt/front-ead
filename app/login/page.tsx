@@ -49,8 +49,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo/Brand */}
           <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-[80%] h-[80%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
-              <Image src="/logo-horizontal.png" alt="Logo" width={320} height={420} className="w-full h-full"/>
+            <div className="inline-flex items-center justify-center w-[30%] h-[30%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
+              <Image src="/logo-vertical.png" alt="Logo" width={320} height={420} className="w-full h-full"/>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Bem-vindo de volta</h1>
             <p className="text-gray-600 mt-2 text-sm md:text-base">Entre na sua conta para continuar</p>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                 {/* Login Button */}
                 <Button
                   type="submit"
-                  className="w-full h-10 md:h-12 bg-[#2D2D2D] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
+                  className="w-full h-10 md:h-12 bg-[#121F3F] hover:bg-gray-800 text-white font-medium text-sm md:text-base cursor-pointer"
                   disabled={isLoading}
                 >
                   {isLoading ? (
