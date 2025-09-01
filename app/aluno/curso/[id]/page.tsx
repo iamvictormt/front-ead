@@ -719,7 +719,7 @@ export default function CursoPage() {
                       <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 rounded-md px-3 py-1 text-green-600 dark:text-green-400">
                         <ShoppingCart className="w-4 h-4 " />
                         <span className="text-sm font-medium ">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                          {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(
                             selectedCourse.pricePaid
                           )}
                         </span>
