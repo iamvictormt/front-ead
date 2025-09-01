@@ -11,6 +11,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import ImageSlider from '@/components/image-slider';
 import { apiService } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
+import Image from 'next/image';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -75,8 +76,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           {/* Logo/Brand */}
           <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl mb-3 md:mb-4">
-              <span className="text-2xl">LOGO</span>
+            <div className="inline-flex items-center justify-center w-[80%] h-[80%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
+              <Image src="/logo-horizontal.png" alt="Logo" width={320} height={420} className="w-full h-full"/>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Crie sua conta</h1>
             <p className="text-gray-600 mt-2 text-sm md:text-base">Junte-se a nós e comece sua jornada</p>
@@ -212,9 +213,9 @@ export default function RegisterPage() {
                     type="checkbox"
                     checked={acceptTerms}
                     onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
+                    className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
+                  <div className="text-sm text-gray-600 leading-relaxed">
                     Eu aceito os{' '}
                     <button type="button" className="text-blue-600 hover:text-blue-800 font-medium">
                       Termos de Uso
@@ -223,7 +224,7 @@ export default function RegisterPage() {
                     <button type="button" className="text-blue-600 hover:text-blue-800 font-medium">
                       Política de Privacidade
                     </button>
-                  </Label>
+                  </div>
                 </div>
 
                 {/* Register Button */}
@@ -286,7 +287,7 @@ export default function RegisterPage() {
 
           {/* Footer */}
           <div className="text-center mt-6 md:mt-8 text-xs md:text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} Nome da empresa. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} IMDN. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>
