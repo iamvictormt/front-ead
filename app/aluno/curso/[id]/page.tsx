@@ -621,14 +621,14 @@ export default function CursoPage() {
 
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsCollapsed} />
 
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent>
+          <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle>Excluir Comentário</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-gray-900 dark:text-white">Excluir Comentário</DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-gray-300">
                 Tem certeza que deseja excluir este comentário? Esta ação não pode ser desfeita.
               </DialogDescription>
             </DialogHeader>
@@ -653,10 +653,10 @@ export default function CursoPage() {
         </Dialog>
 
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent>
+          <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle>Finalizar Curso</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-gray-900 dark:text-white">Finalizar Curso</DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-gray-300">
                 Esta é a última aula do curso. Ao concluí-la, seu certificado será emitido automaticamente e não será
                 mais possível alterar o progresso.
                 <br />
@@ -678,7 +678,7 @@ export default function CursoPage() {
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
-            <div className="bg-[#121F3F] md:bg-white md:rounded-lg shadow p-4 md:p-6">
+            <div className="bg-[#121F3F] md:bg-white md:dark:bg-gray-800 md:rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white ml-12 md:ml-0">
                   Assistindo Curso
@@ -695,27 +695,27 @@ export default function CursoPage() {
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto space-y-6">
-                <div className="flex items-start gap-6 bg-white rounded-lg shadow-sm p-4 md:p-6">
+                <div className="flex items-start gap-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 border border-gray-200 dark:border-gray-700">
                   <img
                     src={selectedCourse.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
                     alt={selectedCourse.title}
                     className="w-60 h-32 object-cover rounded-lg hidden md:block"
                   />
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold mb-2">{selectedCourse.title}</h2>
-                    <p className="text-gray-600 mb-4">{selectedCourse.description}</p>
+                    <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{selectedCourse.title}</h2>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedCourse.description}</p>
                     <div className="flex flex-wrap gap-3">
-                      <div className="flex items-center gap-2 bg-yellow-100 rounded-md px-3 py-1 text-yellow-600">
+                      <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-md px-3 py-1 text-yellow-600 dark:text-yellow-400">
                         <Star className="w-4 h-4" />
                         <span className="text-sm font-medium">{selectedCourse.rating || 0.0} avaliações</span>
                       </div>
 
-                      <div className="flex items-center gap-2 bg-blue-100 rounded-md px-3 py-1 text-blue-600">
+                      <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 rounded-md px-3 py-1 text-blue-600 dark:text-blue-400">
                         <Users className="w-4 h-4" />
                         <span className="text-sm font-medium">{selectedCourse.studentsCount || 0} alunos</span>
                       </div>
 
-                      <div className="flex items-center gap-2 bg-green-100 rounded-md px-3 py-1 text-green-600">
+                      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 rounded-md px-3 py-1 text-green-600 dark:text-green-400">
                         <ShoppingCart className="w-4 h-4 " />
                         <span className="text-sm font-medium ">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
@@ -728,7 +728,7 @@ export default function CursoPage() {
                 </div>
 
                 {selectedLesson && (
-                  <Card className="overflow-hidden py-0">
+                  <Card className="overflow-hidden py-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <CardContent className="p-0">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
                         <div className="lg:col-span-2 bg-[#121F3F]">
@@ -819,15 +819,17 @@ export default function CursoPage() {
                           </div>
                         </div>
 
-                        <div className="max-h-96 lg:max-h-[600px] overflow-y-auto">
-                          <div className="p-4 border-b bg-white">
-                            <h4 className="font-semibold text-gray-900">Conteúdo do Curso</h4>
+                        <div className="max-h-96 lg:max-h-[600px] overflow-y-auto bg-white dark:bg-gray-800">
+                          <div className="p-4 border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">Conteúdo do Curso</h4>
                           </div>
                           <div className="space-y-1">
                             {selectedCourse.modules?.map((module) => (
                               <div key={module.id}>
-                                <div className="px-4 py-2 bg-gray-100 border-b">
-                                  <h5 className="font-medium text-sm text-gray-700">{module.title}</h5>
+                                <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                                  <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                                    {module.title}
+                                  </h5>
                                 </div>
                                 {module.lessons.map((lesson) => {
                                   const isCurrentLesson = selectedLesson?.id === lesson.id;
@@ -839,19 +841,19 @@ export default function CursoPage() {
                                       className={`w-full text-left px-4 py-3 cursor-pointer ${
                                         isCurrentLesson
                                           ? 'bg-[#121F3F] border-r-2 border-[#121F3F]'
-                                          : 'hover:bg-gray-100 transition-colors '
+                                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors '
                                       }`}
                                     >
                                       <div className="flex items-center gap-3">
                                         {lesson.completed ? (
                                           <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                                         ) : (
-                                          <PlayCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                          <PlayCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                                         )}
                                         <div className="flex-1 min-w-0">
                                           <p
                                             className={`text-sm font-medium truncate ${
-                                              isCurrentLesson ? 'text-white' : 'text-gray-900'
+                                              isCurrentLesson ? 'text-white' : 'text-gray-900 dark:text-white'
                                             }`}
                                           >
                                             {lesson.title}
@@ -871,27 +873,42 @@ export default function CursoPage() {
                 )}
 
                 <Tabs defaultValue="materiais" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="materiais">Materiais</TabsTrigger>
-                    <TabsTrigger value="duvidas">Dúvidas</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800">
+                    <TabsTrigger
+                      value="materiais"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Materiais
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="duvidas"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Dúvidas
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="materiais" className="space-y-4">
-                    <Card>
+                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                       <CardHeader>
-                        <CardTitle>Materiais Complementares</CardTitle>
+                        <CardTitle className="text-gray-900 dark:text-white">Materiais Complementares</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
                           {selectedCourse.modules
                             ?.flatMap((module) => module.lessons.filter((lesson) => lesson.pdfUrl))
                             .map((lesson) => (
-                              <div key={lesson.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div
+                                key={lesson.id}
+                                className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50"
+                              >
                                 <div className="flex items-center gap-3">
                                   <FileText className="w-5 h-5 text-red-500" />
                                   <div>
-                                    <h4 className="font-medium">{lesson.title} - Material</h4>
-                                    <p className="text-sm text-gray-500">PDF</p>
+                                    <h4 className="font-medium text-gray-900 dark:text-white">
+                                      {lesson.title} - Material
+                                    </h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">PDF</p>
                                   </div>
                                 </div>
                                 <Button
@@ -914,9 +931,9 @@ export default function CursoPage() {
                   </TabsContent>
 
                   <TabsContent value="duvidas" className="space-y-4">
-                    <Card>
+                    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                           Dúvidas e Comentários
                         </CardTitle>
                       </CardHeader>
@@ -924,15 +941,15 @@ export default function CursoPage() {
                         <div className="space-y-6">
                           {selectedLesson && (
                             <>
-                              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                                <p className="text-sm text-primary font-medium mb-2">
+                              <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20 dark:border-primary/30">
+                                <p className="text-sm text-primary dark:text-primary-foreground font-medium mb-2">
                                   Comentários para: <strong>{selectedLesson.title}</strong>
                                 </p>
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => loadLessonComments(selectedLesson.id)}
-                                  className="border-primary/20 text-primary hover:bg-primary/10"
+                                  className="border-primary/20 dark:border-primary/30 text-primary dark:text-primary-foreground hover:bg-primary/10 dark:hover:bg-primary/20"
                                 >
                                   Carregar Comentários
                                 </Button>
@@ -970,16 +987,18 @@ export default function CursoPage() {
                                     )}
                                   </div>
 
-                                  <Card className="border-primary/20">
+                                  <Card className="border-primary/20 dark:border-primary/30 bg-white dark:bg-gray-800">
                                     <CardHeader>
-                                      <CardTitle className="text-lg">Adicionar Comentário</CardTitle>
+                                      <CardTitle className="text-lg text-gray-900 dark:text-white">
+                                        Adicionar Comentário
+                                      </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                       <Textarea
                                         placeholder="Digite sua dúvida ou comentário..."
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
-                                        className="min-h-[100px] resize-none"
+                                        className="min-h-[100px] resize-none bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
                                         rows={4}
                                       />
                                       <Button
