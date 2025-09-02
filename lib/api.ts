@@ -43,6 +43,7 @@ interface DashboardStats {
 }
 
 interface Course {
+  modules: never[];
   id: number;
   title: string;
   description: string;
@@ -63,19 +64,18 @@ interface Course {
 }
 
 interface CourseAvailable {
-  id: number
-  title: string
-  description: string
-  price: number
-  thumbnailUrl: string
-  createdAt: string
-  updatedAt: string
-  instructor: string
-  category: string
-  rating: number
-  studentsCount: number
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  thumbnailUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  instructor: string;
+  category: string;
+  rating: number;
+  studentsCount: number;
 }
-
 
 interface RecentActivity {
   type: string;
@@ -145,6 +145,32 @@ interface MyCourse {
   rating: number;
   studentsCount: number;
 }
+
+export interface LessonDTO {
+  title: string;
+  videoUrl: string;
+  pdfUrl?: string | null;
+  order: number;
+}
+
+export interface ModuleDTO {
+  title: string;
+  order: number;
+  lessons: LessonDTO[];
+}
+
+export interface CourseDTO {
+  title: string;
+  description: string;
+  price: number;
+  thumbnailUrl: string;
+  instructor: string;
+  category: string;
+  rating: number;
+  studentsCount: number;
+  modules: ModuleDTO[];
+}
+
 
 class ApiService {
   private baseURL: string;
@@ -266,6 +292,12 @@ class ApiService {
     return this.request(endpoint);
   }
 
+  async getCourse(id: string): Promise<ApiResponse<Course>> {
+    return this.request<Course>(`/courses/${id}`, {
+      method: 'GET',
+    });
+  }
+
   async createCourse(courseData: Partial<Course>): Promise<ApiResponse<Course>> {
     return this.request<Course>('/courses', {
       method: 'POST',
@@ -273,9 +305,9 @@ class ApiService {
     });
   }
 
-  async updateCourse(id: string, courseData: Partial<Course>): Promise<ApiResponse<Course>> {
+  async updateCourse(id: string, courseData: CourseDTO): Promise<ApiResponse<Course>> {
     return this.request<Course>(`/courses/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(courseData),
     });
   }
@@ -451,6 +483,13 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  async addCourse(data: CourseDTO): Promise<ApiResponse<any>> {
+    return this.request<any>(`/courses`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiService = new ApiService();
@@ -468,5 +507,5 @@ export type {
   MyCourse,
   DashboardStats,
   RecentActivity,
-  CourseAvailable
+  CourseAvailable,
 };

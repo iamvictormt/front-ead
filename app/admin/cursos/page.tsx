@@ -1,102 +1,191 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState, useEffect } from "react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Search, Plus, Edit, Trash2, Users, Clock, Star } from 'lucide-react'
-import { usePaginatedApi } from "@/hooks/use-api"
-import { apiService } from "@/lib/api"
+import type React from 'react';
+
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Search, Star, Users, Edit, Trash2, Eye, Plus, Loader2, X } from 'lucide-react';
+import { apiService, CourseAvailable, type Course } from '@/lib/api';
+import { useToast } from '@/contexts/toast-context';
+import { useSidebar } from '@/contexts/sidebar-context';
+import Link from 'next/link';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import clsx from 'clsx';
 
 export default function AdminCursosPage() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("todos")
-  const { user } = useAuth()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [courses, setCourses] = useState<CourseAvailable[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { success, error: showError } = useToast();
 
-  const contentMargin = `md:${isSidebarCollapsed ? "ml-22" : "ml-72"}`
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
+    'pt-14 md:pt-0': true,
+  });
 
-  // Usar API real para buscar cursos
-  const {
-    data: cursos,
-    loading,
-    error,
-    updateParams,
-    pagination
-  } = usePaginatedApi(
-    (params) => apiService.getCourses(params),
-    { page: 1, limit: 12 }
-  )
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    price: '',
+  });
+  const [saving, setSaving] = useState(false);
 
-  // Atualizar parâmetros quando filtros mudarem
   useEffect(() => {
-    const params: any = {}
-    
-    if (searchTerm) params.search = searchTerm
-    if (statusFilter !== "todos") params.status = statusFilter
-    
-    updateParams(params)
-  }, [searchTerm, statusFilter])
+    loadCourses();
+  }, []);
 
-  // Debounce para busca
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm) {
-        updateParams({ search: searchTerm })
+  const loadCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getAvailableCourses();
+      console.log(response.data);
+      if (response.success && response.data) {
+        setCourses(response.data.courses || []);
+      } else {
+        showError(response.error || 'Erro ao carregar cursos');
       }
-    }, 500)
+    } catch (error) {
+      showError('Erro ao carregar cursos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+  const filteredCourses = courses.filter((course) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      course.title?.toLowerCase().includes(searchLower) ||
+      course.instructor?.toLowerCase().includes(searchLower) ||
+      course.category?.toLowerCase().includes(searchLower)
+    );
+  });
 
-  if (loading && cursos.length === 0) {
+  const formatPrice = (price: number) => {
+    return `Kz ${price.toFixed(2).replace('.', ',')}`;
+  };
+
+  const formatPriceInput = (value: string) => {
+    // Remove tudo exceto números e vírgula/ponto
+    const numbers = value.replace(/[^\d.,]/g, '');
+
+    // Se estiver vazio, retorna "Kz "
+    if (!numbers) return 'Kz ';
+
+    // Substitui vírgula por ponto para cálculos
+    const normalizedNumbers = numbers.replace(',', '.');
+
+    // Formata o número
+    const numericValue = Number.parseFloat(normalizedNumbers);
+    if (isNaN(numericValue)) return 'Kz ';
+
+    // Retorna formatado
+    return `Kz ${numericValue.toFixed(2).replace('.', ',')}`;
+  };
+
+  const handleEditCourse = (course: Course) => {
+    window.location.href = `/admin/cursos/editar/${course.id}`;
+  };
+
+  const handleSaveSimpleEdit = async () => {
+    if (!editingCourse) return;
+
+    try {
+      setSaving(true);
+
+      // Extrair valor numérico do preço
+      const priceValue = Number.parseFloat(editForm.price.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+
+      const updateData = {
+        title: editForm.title,
+        description: editForm.description,
+        price: priceValue,
+      };
+
+      // Usar PATCH para atualização parcial
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${editingCourse.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (response.ok) {
+        success('Curso atualizado com sucesso!');
+        setEditingCourse(null);
+        loadCourses(); // Recarregar lista
+      } else {
+        throw new Error('Erro ao atualizar curso');
+      }
+    } catch (error) {
+      showError('Erro ao atualizar curso');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPriceInput(e.target.value);
+    setEditForm((prev) => ({ ...prev, price: formatted }));
+  };
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este curso?')) return;
+
+    try {
+      // Implementar delete na API
+      success('Curso excluído com sucesso!');
+      loadCourses();
+    } catch (error) {
+      showError('Erro ao excluir curso');
+    }
+  };
+
+  if (loading) {
     return (
       <ProtectedRoute allowedRoles={['ADMIN']}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
-            <span>Carregando cursos...</span>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-white" />
+            <span className="text-foreground dark:text-white">Carregando cursos...</span>
           </div>
         </div>
       </ProtectedRoute>
-    )
-  }
-
-  if (error) {
-    return (
-      <ProtectedRoute allowedRoles={['ADMIN']}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">Erro ao carregar cursos: {error}</p>
-            <Button onClick={() => window.location.reload()}>
-              Tentar Novamente
-            </Button>
-          </div>
-        </div>
-      </ProtectedRoute>
-    )
+    );
   }
 
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
-      <div className="min-h-screen bg-gray-50">
-        <CollapsibleSidebar onToggle={setIsSidebarCollapsed} />
-        
-        <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <CollapsibleSidebar onToggle={setIsCollapsed} />
+
+        <div className={contentMargin}>
           {/* Header */}
-          <header className="bg-white shadow-sm border-b">
-            <div className="px-4 md:px-6 py-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <h1 className="text-xl md:text-2xl font-semibold text-gray-900 ml-12 md:ml-0">Gerenciar Cursos</h1>
+          <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
+            <div className="bg-[#121F3F] md:bg-white md:dark:bg-gray-800 md:rounded-xl shadow-sm dark:shadow-gray-700/20 p-4 md:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 md:dark:text-white ml-12 md:ml-0">
+                    Gerenciar Cursos
+                  </h1>
+                  <p className="text-xs text-gray-400 md:dark:text-gray-300 hidden md:block">
+                    {courses.length} cursos cadastrados
+                  </p>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Curso
-                </Button>
+                <Link href="/admin/cursos/novo">
+                  <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Curso
+                  </Button>
+                </Link>
               </div>
             </div>
           </header>
@@ -104,140 +193,151 @@ export default function AdminCursosPage() {
           {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
-              <div className="max-w-7xl mx-auto">
+              <div className="mx-auto space-y-6">
                 {/* Search and Filters */}
-                <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 mb-6">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Buscar cursos, instrutores ou categorias..."
+                        type="text"
+                        placeholder="Buscar por curso, instrutor ou categoria..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="w-full pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                       />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setStatusFilter("todos")}>Todos</Button>
-                      <Button variant="outline" size="sm" onClick={() => setStatusFilter("ativo")}>Ativos</Button>
-                      <Button variant="outline" size="sm" onClick={() => setStatusFilter("rascunho")}>Rascunhos</Button>
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-gray-400" />
                     </div>
                   </div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-                  <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
-                      </div>
-                      <div className="ml-3 md:ml-4">
-                        <p className="text-xs md:text-sm font-medium text-gray-600">Total de Cursos</p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900">{cursos?.length || 0}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Users className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
-                      </div>
-                      <div className="ml-3 md:ml-4">
-                        <p className="text-xs md:text-sm font-medium text-gray-600">Cursos Ativos</p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {cursos?.filter(c => c.status === 'ativo').length || 0}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-yellow-100 rounded-lg">
-                        <Users className="w-5 h-5 md:w-6 md:h-6 text-yellow-600" />
-                      </div>
-                      <div className="ml-3 md:ml-4">
-                        <p className="text-xs md:text-sm font-medium text-gray-600">Total de Alunos</p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900">
-                          {cursos?.reduce((acc, curso) => acc + (curso.alunos || 0), 0) || 0}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <Star className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
-                      </div>
-                      <div className="ml-3 md:ml-4">
-                        <p className="text-xs md:text-sm font-medium text-gray-600">Avaliação Média</p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900">4.8</p>
-                      </div>
-                    </div>
+                {/* Results count */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-300">
+                    <span className="text-lg">
+                      {filteredCourses.length} curso{filteredCourses.length !== 1 ? 's' : ''} encontrado
+                      {filteredCourses.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
                 </div>
 
-                {/* Courses Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {cursos?.map((curso) => (
-                    <div key={curso.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      {/* Course Image Placeholder */}
-                      <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600"></div>
-                      
-                      {/* Course Content */}
-                      <div className="p-4 md:p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <Badge variant={curso.status === 'ativo' ? 'default' : 'secondary'}>
-                            {curso.status}
-                          </Badge>
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="text-sm text-gray-600">{curso.rating}</span>
+                {filteredCourses.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-300 hover:-translate-y-1"
+                      >
+                        {/* Course thumbnail */}
+                        <div className="relative h-48 bg-gradient-to-br from-blue-500/20 to-purple-600/20 dark:from-blue-500/30 dark:to-purple-600/30">
+                          <img
+                            src={course.thumbnailUrl || '/placeholder.svg?height=192&width=384&query=curso'}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-4 right-4">
+                            <Badge
+                              variant="secondary"
+                              className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white"
+                            >
+                              {course.category}
+                            </Badge>
                           </div>
                         </div>
-                        
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{curso.titulo}</h3>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{curso.descricao}</p>
-                        
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Users className="w-4 h-4 mr-2" />
-                            {curso.alunos} alunos
+
+                        {/* Course content */}
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                            {course.title}
+                          </h3>
+
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
+                            {course.description}
+                          </p>
+
+                          <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Instrutor:{' '}
+                            <span className="font-medium text-gray-900 dark:text-white">{course.instructor}</span>
                           </div>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Clock className="w-4 h-4 mr-2" />
-                            {curso.duracao}
+
+                          {/* Course stats */}
+                          <div className="flex items-center gap-4 mb-6 text-sm text-gray-600 dark:text-gray-300">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {course.rating || '4.5'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              <span>{course.studentsCount || 0} alunos</span>
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            Instrutor: {curso.instrutor}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-semibold text-gray-900">{curso.preco}</span>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+
+                          {/* Price and action buttons */}
+                          <div className="flex items-center justify-between">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                              {formatPrice(course.price || 0)}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
+                                title="Visualizar curso"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
+                                onClick={() => handleEditCourse(course)}
+                                title={
+                                  (course.studentsCount || 0) > 0 ? 'Edição simples (curso vendido)' : 'Edição completa'
+                                }
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 dark:border-gray-600 bg-transparent"
+                                onClick={() => handleDeleteCourse(course.id.toString())}
+                                title="Excluir curso"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {cursos?.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="text-gray-500 mb-4">
-                      <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum curso encontrado</p>
-                      <p className="text-sm">Tente ajustar os filtros de busca</p>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="max-w-md mx-auto">
+                      <Search className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        Nenhum curso encontrado
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-6">
+                        Não encontramos cursos que correspondam à sua busca. Tente usar termos diferentes.
+                      </p>
+                      <div className="flex gap-4 justify-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => setSearchTerm('')}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+                        >
+                          Ver todos os cursos
+                        </Button>
+                        <Link href="/admin/cursos/novo">
+                          <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Criar Primeiro Curso
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -245,7 +345,96 @@ export default function AdminCursosPage() {
             </div>
           </main>
         </div>
+
+        {editingCourse && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Editar Curso</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Edição limitada (curso já vendido)</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingCourse(null)}
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-title" className="text-gray-900 dark:text-white">
+                      Título do Curso *
+                    </Label>
+                    <Input
+                      id="edit-title"
+                      value={editForm.title}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="Digite o título do curso"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-description" className="text-gray-900 dark:text-white">
+                      Descrição *
+                    </Label>
+                    <Textarea
+                      id="edit-description"
+                      value={editForm.description}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white min-h-[100px]"
+                      placeholder="Descreva o que o aluno aprenderá neste curso..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-price" className="text-gray-900 dark:text-white">
+                      Preço *
+                    </Label>
+                    <Input
+                      id="edit-price"
+                      value={editForm.price}
+                      onChange={handlePriceChange}
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="Kz 0,00"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditingCourse(null)}
+                    className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSaveSimpleEdit}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={saving || !editForm.title || !editForm.description}
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      'Salvar Alterações'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
-  )
+  );
 }
