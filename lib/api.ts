@@ -75,6 +75,7 @@ interface CourseAvailable {
   category: string;
   rating: number;
   studentsCount: number;
+  deactivatedIn?: string;
 }
 
 interface RecentActivity {
@@ -170,7 +171,6 @@ export interface CourseDTO {
   studentsCount: number;
   modules: ModuleDTO[];
 }
-
 
 class ApiService {
   private baseURL: string;
@@ -292,6 +292,12 @@ class ApiService {
     return this.request(endpoint);
   }
 
+  async getAllCourses(): Promise<ApiResponse<CourseAvailable[]>> {
+    return this.request<CourseAvailable[]>(`/courses`, {
+      method: 'GET',
+    });
+  }
+
   async getCourse(id: string): Promise<ApiResponse<Course>> {
     return this.request<Course>(`/courses/${id}`, {
       method: 'GET',
@@ -309,6 +315,18 @@ class ApiService {
     return this.request<Course>(`/courses/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(courseData),
+    });
+  }
+
+  async deactivateCourse(id: string): Promise<ApiResponse<Course>> {
+    return this.request<Course>(`/courses/${id}/deactivate`, {
+      method: 'PATCH',
+    });
+  }
+
+  async reactivateCourse(id: string): Promise<ApiResponse<Course>> {
+    return this.request<Course>(`/courses/${id}/reactivate`, {
+      method: 'PATCH',
     });
   }
 

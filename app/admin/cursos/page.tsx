@@ -8,14 +8,15 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, Users, Edit, Trash2, Eye, Plus, Loader2, X } from 'lucide-react';
-import { apiService, CourseAvailable, type Course } from '@/lib/api';
+import { Search, Star, Users, Edit, Eye, Plus, Loader2, X, EyeClosed } from 'lucide-react';
+import { apiService, type CourseAvailable, type Course } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 import { useSidebar } from '@/contexts/sidebar-context';
 import Link from 'next/link';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import clsx from 'clsx';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 
 export default function AdminCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -38,6 +39,14 @@ export default function AdminCursosPage() {
   });
   const [saving, setSaving] = useState(false);
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [showReactivateDialog, setShowReactivateDialog] = useState(false);
+  const [courseToReactivate, setCourseToReactivate] = useState<{ id: string; title: string } | null>(null);
+  const [isReactivating, setIsReactivating] = useState(false);
+
   useEffect(() => {
     loadCourses();
   }, []);
@@ -45,10 +54,10 @@ export default function AdminCursosPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getAvailableCourses();
+      const response = await apiService.getAllCourses();
       console.log(response.data);
       if (response.success && response.data) {
-        setCourses(response.data.courses || []);
+        setCourses(response.data || []);
       } else {
         showError(response.error || 'Erro ao carregar cursos');
       }
@@ -90,7 +99,7 @@ export default function AdminCursosPage() {
     return `Kz ${numericValue.toFixed(2).replace('.', ',')}`;
   };
 
-  const handleEditCourse = (course: Course) => {
+  const handleEditCourse = (course: CourseAvailable) => {
     window.location.href = `/admin/cursos/editar/${course.id}`;
   };
 
@@ -137,15 +146,57 @@ export default function AdminCursosPage() {
     setEditForm((prev) => ({ ...prev, price: formatted }));
   };
 
-  const handleDeleteCourse = async (courseId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este curso?')) return;
+  const handleDeleteCourse = (course: CourseAvailable) => {
+    setCourseToDelete({ id: course.id.toString(), title: course.title });
+    setShowDeleteDialog(true);
+  };
+
+  const handleReactivateCourse = (course: CourseAvailable) => {
+    setCourseToReactivate({ id: course.id.toString(), title: course.title });
+    setShowReactivateDialog(true);
+  };
+
+  const confirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
 
     try {
-      // Implementar delete na API
-      success('Curso excluído com sucesso!');
-      loadCourses();
+      setIsDeleting(true);
+      // TODO: Implementar desativação na API
+      const response = await apiService.deactivateCourse(courseToDelete.id);
+      if (response.success) {
+        success('Curso desativado com sucesso!');
+        setShowDeleteDialog(false);
+        setCourseToDelete(null);
+        loadCourses();
+      } else {
+        showError(response.error || 'Erro ao desativar curso');
+      }
     } catch (error) {
-      showError('Erro ao excluir curso');
+      showError('Erro ao desativar curso');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmReactivateCourse = async () => {
+    if (!courseToReactivate) return;
+
+    try {
+      setIsReactivating(true);
+      // TODO: Implementar reativação na API
+      const response = await apiService.reactivateCourse(courseToReactivate.id);
+      if (response.success) {
+        success('Curso reativado com sucesso!');
+        setShowReactivateDialog(false);
+        setCourseToReactivate(null);
+        loadCourses();
+      } else {
+        showError(response.error || 'Erro ao reativar curso');
+      }
+    } catch (error) {
+      showError('Erro ao reativar curso');
+    } finally {
+      setIsReactivating(false);
     }
   };
 
@@ -225,7 +276,12 @@ export default function AdminCursosPage() {
                     {filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-300 hover:-translate-y-1"
+                        className={clsx(
+                          'bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300',
+                          course.deactivatedIn
+                            ? 'opacity-60 grayscale hover:shadow-md hover:opacity-100 hover:grayscale-0 dark:hover:shadow-gray-700/20'
+                            : 'hover:shadow-lg dark:hover:shadow-gray-700/30 hover:-translate-y-1'
+                        )}
                       >
                         {/* Course thumbnail */}
                         <div className="relative h-48 bg-gradient-to-br from-blue-500/20 to-purple-600/20 dark:from-blue-500/30 dark:to-purple-600/30">
@@ -234,7 +290,15 @@ export default function AdminCursosPage() {
                             alt={course.title}
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute top-4 right-4">
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            {course.deactivatedIn && (
+                              <Badge
+                                variant="secondary"
+                                className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
+                              >
+                                Desativado em {new Date(course.deactivatedIn).toLocaleDateString('pt-BR')}
+                              </Badge>
+                            )}
                             <Badge
                               variant="secondary"
                               className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white"
@@ -279,34 +343,40 @@ export default function AdminCursosPage() {
                               {formatPrice(course.price || 0)}
                             </div>
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
-                                title="Visualizar curso"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
-                                onClick={() => handleEditCourse(course)}
-                                title={
-                                  (course.studentsCount || 0) > 0 ? 'Edição simples (curso vendido)' : 'Edição completa'
-                                }
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 dark:border-gray-600 bg-transparent"
-                                onClick={() => handleDeleteCourse(course.id.toString())}
-                                title="Excluir curso"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {!course.deactivatedIn && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
+                                  onClick={() => handleEditCourse(course)}
+                                  title="Editar Curso"
+                                  disabled={!!course.deactivatedIn}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+
+                              {course.deactivatedIn ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20 dark:border-gray-600 bg-transparent"
+                                  onClick={() => handleReactivateCourse(course)}
+                                  title="Reativar curso"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900/20 dark:border-gray-600 bg-transparent"
+                                  onClick={() => handleDeleteCourse(course)}
+                                  title="Desativar curso"
+                                >
+                                  <EyeClosed className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -345,6 +415,36 @@ export default function AdminCursosPage() {
             </div>
           </main>
         </div>
+
+        <ConfirmationDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setCourseToDelete(null);
+          }}
+          onConfirm={confirmDeleteCourse}
+          title="Desativar Curso"
+          message={`Tem certeza que deseja desativar o curso "${courseToDelete?.title}"? O curso ficará indisponível para novos alunos, mas os alunos já matriculados continuarão tendo acesso.`}
+          confirmText="Desativar"
+          cancelText="Cancelar"
+          variant="warning"
+          isLoading={isDeleting}
+        />
+
+        <ConfirmationDialog
+          isOpen={showReactivateDialog}
+          onClose={() => {
+            setShowReactivateDialog(false);
+            setCourseToReactivate(null);
+          }}
+          onConfirm={confirmReactivateCourse}
+          title="Reativar Curso"
+          message={`Tem certeza que deseja reativar o curso "${courseToReactivate?.title}"? O curso ficará disponível novamente para novos alunos se inscreverem.`}
+          confirmText="Reativar"
+          cancelText="Cancelar"
+          variant="default"
+          isLoading={isReactivating}
+        />
 
         {editingCourse && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
