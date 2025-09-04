@@ -44,6 +44,8 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
         return 'Gerenciar Cursos';
       case '/admin/cursos/novo':
         return 'Cadastrar Curso';
+      case `/admin/cursos/editar/${pathname.split('/').pop()}`:
+        return 'Editar Curso';
       default:
         return 'LOGO';
     }
