@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                           Receita Mensal
                         </p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-                          {dashboardData ? formatKwanza(dashboardData.monthlyRevenue) : "Kz 0,00"}
+                          {dashboardData ? formatKwanza(dashboardData.monthlyRevenue) : "0,00 Kz"}
                         </p>
                       </div>
                     </div>

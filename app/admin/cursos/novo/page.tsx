@@ -54,6 +54,8 @@ export default function NovoCursoPage() {
   const router = useRouter();
   const { success, info, error: showError } = useToast();
   const [hasDraft, setHasDraft] = useState(false);
+  const [price, setPrice] = useState<number>(0);
+  const [inputValue, setInputValue] = useState<string>(formatKwanza(0));
 
   const categories = [
     { value: 'Desenvolvimento Web', label: 'Desenvolvimento Web' },
@@ -103,6 +105,8 @@ export default function NovoCursoPage() {
       if (draft) {
         const parsedDraft = JSON.parse(draft);
         setCourseData(parsedDraft);
+        setPrice(parsedDraft.price || 0);
+        setInputValue(parsedDraft.price ? formatKwanza(parsedDraft.price) : '');
         setHasDraft(true);
         info('Rascunho carregado com sucesso');
         return parsedDraft;
@@ -170,14 +174,33 @@ export default function NovoCursoPage() {
     return cleaned;
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatKwanza(e.target.value);
-    e.target.value = formatted;
+  const handleChangePrice = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value;
 
-    // Extrai o valor numérico para salvar no state
-    const numericValue =
-      formatted === 'Kz ' ? 0 : Number.parseFloat(formatted.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    raw = raw.replace(/[^0-9,]/g, '');
+
+    const parts = raw.split(',');
+    if (parts.length > 2) {
+      raw = parts[0] + ',' + parts[1];
+    }
+
+    if (parts[1]?.length > 2) {
+      parts[1] = parts[1].slice(0, 2);
+      raw = parts.join(',');
+    }
+
+    const numericValue = Number(raw.replace(',', '.')) || 0;
+    setPrice(numericValue);
+    setInputValue(raw);
     setCourseData((prev) => ({ ...prev, price: numericValue }));
+  };
+
+  const handleBlur = () => {
+    setInputValue(formatKwanza(price));
+  };
+
+  const handleFocus = () => {
+    setInputValue(price === 0 ? '' : price.toString().replace('.', ','));
   };
 
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -257,7 +280,6 @@ export default function NovoCursoPage() {
     if (!courseData.description.trim()) errors.push('Descrição é obrigatória');
     if (!courseData.instructor.trim()) errors.push('Instrutor é obrigatório');
     if (!courseData.category) errors.push('Categoria é obrigatória');
-    if (courseData.price <= 0) errors.push('Preço deve ser maior que zero');
 
     // Validar módulos
     if (courseData.modules.length === 0) {
@@ -463,9 +485,11 @@ export default function NovoCursoPage() {
                           <Input
                             id="price"
                             type="text"
-                            onChange={handlePriceChange}
-                            placeholder="Kz 0,00"
-                            defaultValue="Kz "
+                            value={inputValue}
+                            onChange={handleChangePrice}
+                            onBlur={handleBlur}
+                            onFocus={handleFocus}
+                            placeholder="0,00 Kz"
                             required
                             className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                           />

@@ -480,7 +480,7 @@ export default function AdminCursosPage() {
                       value={editForm.price}
                       onChange={handlePriceChange}
                       className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Kz 0,00"
+                      placeholder="0,00 Kz"
                     />
                   </div>
                 </div>

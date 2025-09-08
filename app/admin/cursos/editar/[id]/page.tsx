@@ -394,7 +394,7 @@ export default function EditarCursoPage() {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             onFocus={handleFocus}
-                            placeholder="Kz 0,00"
+                            placeholder="0,00 Kz"
                             required
                             className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                           />
