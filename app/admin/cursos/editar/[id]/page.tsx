@@ -18,7 +18,7 @@ import { useSidebar } from "@/contexts/sidebar-context"
 import clsx from "clsx"
 import { useToast } from "@/contexts/toast-context"
 import { apiService } from "@/lib/api"
-//import { apiService, CourseDTO } from '@/lib/api';
+import { ImageUpload } from "@/components/image-upload"
 
 interface Lesson {
   id: string
@@ -439,15 +439,11 @@ export default function EditarCursoPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="thumbnailUrl" className="text-sm font-medium text-gray-900 dark:text-white">
-                          URL da Imagem de Capa
-                        </Label>
-                        <Input
-                          id="thumbnailUrl"
-                          value={courseData.thumbnailUrl || ""}
-                          onChange={(e) => setCourseData((prev) => ({ ...prev, thumbnailUrl: e.target.value }))}
-                          placeholder="https://exemplo.com/imagem.jpg"
-                          className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        <ImageUpload
+                          value={courseData.thumbnailUrl}
+                          onChange={(url) => setCourseData((prev) => ({ ...prev, thumbnailUrl: url }))}
+                          label="Imagem de Capa do Curso"
+                          required={false}
                         />
                       </div>
                     </CardContent>

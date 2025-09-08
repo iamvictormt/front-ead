@@ -1,249 +1,322 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Save, GripVertical } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useSidebar } from "@/contexts/sidebar-context"
-import clsx from "clsx"
-import { useToast } from "@/contexts/toast-context"
-//import { apiService, CourseDTO } from '@/lib/api';
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2, Save, GripVertical, FileText } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useSidebar } from '@/contexts/sidebar-context';
+import clsx from 'clsx';
+import { useToast } from '@/contexts/toast-context';
+import { apiService, type CourseDTO } from '@/lib/api';
+import { ImageUpload } from '@/components/image-upload';
 
 interface Lesson {
-  id: string
-  title: string
-  videoUrl: string
-  pdfUrl: string
-  order: number
+  id: string;
+  title: string;
+  videoUrl: string;
+  pdfUrl: string;
+  order: number;
 }
 
 interface Module {
-  id: string
-  title: string
-  order: number
-  lessons: Lesson[]
+  id: string;
+  title: string;
+  order: number;
+  lessons: Lesson[];
 }
 
 interface CourseData {
-  title: string
-  description: string
-  price: number
-  thumbnailUrl: string
-  instructor: string
-  category: string
-  rating: number
-  studentsCount: number
-  modules: Module[]
+  title: string;
+  description: string;
+  price: number;
+  thumbnailUrl: string;
+  instructor: string;
+  category: string;
+  rating: number;
+  studentsCount: number;
+  modules: Module[];
 }
 
 export default function NovoCursoPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar()
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { success, error: showError } = useToast()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { success, info, error: showError } = useToast();
+  const [hasDraft, setHasDraft] = useState(false);
 
-  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
-    "md:ml-42": isCollapsed,
-    "md:ml-80": !isCollapsed,
-    "pt-14 md:pt-0": true,
-  })
+  const categories = [
+    { value: 'Desenvolvimento Web', label: 'Desenvolvimento Web' },
+    { value: 'Mobile', label: 'Mobile' },
+    { value: 'Data Science', label: 'Data Science' },
+    { value: 'Design', label: 'Design' },
+    { value: 'Marketing', label: 'Marketing' },
+    { value: 'Negócios', label: 'Negócios' },
+  ];
+
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
+    'pt-14 md:pt-0': true,
+  });
 
   const [courseData, setCourseData] = useState<CourseData>({
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     price: 0,
-    thumbnailUrl: "",
-    instructor: "",
-    category: "",
+    thumbnailUrl: '',
+    instructor: '',
+    category: '',
     rating: 0,
     studentsCount: 0,
     modules: [],
-  })
+  });
+
+  const saveDraft = (data: CourseData) => {
+    try {
+      localStorage.setItem(
+        'course-draft',
+        JSON.stringify({
+          ...data,
+          lastSaved: new Date().toISOString(),
+        })
+      );
+      setHasDraft(true);
+    } catch (error) {
+      console.error('Erro ao salvar rascunho:', error);
+    }
+  };
+
+  const loadDraft = () => {
+    try {
+      const draft = localStorage.getItem('course-draft');
+      if (draft) {
+        const parsedDraft = JSON.parse(draft);
+        setCourseData(parsedDraft);
+        setHasDraft(true);
+        info('Rascunho carregado com sucesso');
+        return parsedDraft;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar rascunho:', error);
+    }
+    return null;
+  };
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem('course-draft');
+      setHasDraft(false);
+    } catch (error) {
+      console.error('Erro ao limpar rascunho:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadDraft();
+  }, []);
+
+  useEffect(() => {
+    // Só salva se houver algum conteúdo preenchido
+    const hasContent =
+      courseData.title ||
+      courseData.description ||
+      courseData.instructor ||
+      courseData.category ||
+      courseData.modules.length > 0;
+
+    if (hasContent) {
+      const timeoutId = setTimeout(() => {
+        saveDraft(courseData);
+      }, 1000); // Salva após 1 segundo de inatividade
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [courseData]);
 
   const formatPrice = (value: string) => {
     // Remove tudo que não é número
-    const numericValue = value.replace(/[^\d]/g, "")
+    const numericValue = value.replace(/[^\d]/g, '');
 
-    if (!numericValue) return "Kz "
+    if (!numericValue) return 'Kz ';
 
     // Converte para número e divide por 100 para ter centavos
-    const number = Number.parseInt(numericValue) / 100
+    const number = Number.parseInt(numericValue) / 100;
 
     // Formata como moeda angolana
-    return new Intl.NumberFormat("pt-AO", {
-      style: "currency",
-      currency: "AOA",
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
       minimumFractionDigits: 2,
-    }).format(number)
-  }
+    }).format(number);
+  };
 
   const formatRating = (value: string) => {
     // Remove caracteres inválidos, mantém apenas números e ponto
-    let cleaned = value.replace(/[^\d.]/g, "")
+    let cleaned = value.replace(/[^\d.]/g, '');
 
     // Garante apenas um ponto decimal
-    const parts = cleaned.split(".")
+    const parts = cleaned.split('.');
     if (parts.length > 2) {
-      cleaned = parts[0] + "." + parts.slice(1).join("")
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
     }
 
     // Limita a uma casa decimal
     if (parts[1] && parts[1].length > 1) {
-      cleaned = parts[0] + "." + parts[1].substring(0, 1)
+      cleaned = parts[0] + '.' + parts[1].substring(0, 1);
     }
 
     // Converte para número para validar limites
-    const numValue = Number.parseFloat(cleaned)
+    const numValue = Number.parseFloat(cleaned);
 
     // Se exceder 5, limita a 5
     if (numValue > 5) {
-      return "5.0"
+      return '5.0';
     }
 
-    return cleaned
-  }
+    return cleaned;
+  };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPrice(e.target.value)
-    e.target.value = formatted
+    const formatted = formatPrice(e.target.value);
+    e.target.value = formatted;
 
     // Extrai o valor numérico para salvar no state
     const numericValue =
-      formatted === "Kz " ? 0 : Number.parseFloat(formatted.replace(/[^\d,]/g, "").replace(",", ".")) || 0
-    setCourseData((prev) => ({ ...prev, price: numericValue }))
-  }
+      formatted === 'Kz ' ? 0 : Number.parseFloat(formatted.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    setCourseData((prev) => ({ ...prev, price: numericValue }));
+  };
 
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatRating(e.target.value)
-    e.target.value = formatted
+    const formatted = formatRating(e.target.value);
+    e.target.value = formatted;
 
-    const numericValue = Number.parseFloat(formatted) || 0
-    setCourseData((prev) => ({ ...prev, rating: numericValue }))
-  }
+    const numericValue = Number.parseFloat(formatted) || 0;
+    setCourseData((prev) => ({ ...prev, rating: numericValue }));
+  };
 
   const addModule = () => {
     const newModule: Module = {
       id: `module-${Date.now()}`,
-      title: "",
+      title: '',
       order: courseData.modules.length + 1,
       lessons: [],
-    }
+    };
     setCourseData((prev) => ({
       ...prev,
       modules: [...prev.modules, newModule],
-    }))
-  }
+    }));
+  };
 
   const removeModule = (moduleId: string) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.filter((m) => m.id !== moduleId),
-    }))
-  }
+    }));
+  };
 
   const updateModule = (moduleId: string, field: keyof Module, value: any) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) => (m.id === moduleId ? { ...m, [field]: value } : m)),
-    }))
-  }
+    }));
+  };
 
   const addLesson = (moduleId: string) => {
-    const module = courseData.modules.find((m) => m.id === moduleId)
-    if (!module) return
+    const module = courseData.modules.find((m) => m.id === moduleId);
+    if (!module) return;
 
     const newLesson: Lesson = {
       id: `lesson-${Date.now()}`,
-      title: "",
-      videoUrl: "",
-      pdfUrl: "",
+      title: '',
+      videoUrl: '',
+      pdfUrl: '',
       order: module.lessons.length + 1,
-    }
+    };
 
-    updateModule(moduleId, "lessons", [...module.lessons, newLesson])
-  }
+    updateModule(moduleId, 'lessons', [...module.lessons, newLesson]);
+  };
 
   const removeLesson = (moduleId: string, lessonId: string) => {
-    const module = courseData.modules.find((m) => m.id === moduleId)
-    if (!module) return
+    const module = courseData.modules.find((m) => m.id === moduleId);
+    if (!module) return;
 
     updateModule(
       moduleId,
-      "lessons",
-      module.lessons.filter((l) => l.id !== lessonId),
-    )
-  }
+      'lessons',
+      module.lessons.filter((l) => l.id !== lessonId)
+    );
+  };
 
   const updateLesson = (moduleId: string, lessonId: string, field: keyof Lesson, value: any) => {
-    const module = courseData.modules.find((m) => m.id === moduleId)
-    if (!module) return
+    const module = courseData.modules.find((m) => m.id === moduleId);
+    if (!module) return;
 
-    const updatedLessons = module.lessons.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l))
-    updateModule(moduleId, "lessons", updatedLessons)
-  }
+    const updatedLessons = module.lessons.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l));
+    updateModule(moduleId, 'lessons', updatedLessons);
+  };
 
   const validateCourse = (): string[] => {
-    const errors: string[] = []
+    const errors: string[] = [];
 
     // Validar campos obrigatórios básicos
-    if (!courseData.title.trim()) errors.push("Título do curso é obrigatório")
-    if (!courseData.description.trim()) errors.push("Descrição é obrigatória")
-    if (!courseData.instructor.trim()) errors.push("Instrutor é obrigatório")
-    if (!courseData.category) errors.push("Categoria é obrigatória")
-    if (courseData.price <= 0) errors.push("Preço deve ser maior que zero")
+    if (!courseData.title.trim()) errors.push('Título do curso é obrigatório');
+    if (!courseData.description.trim()) errors.push('Descrição é obrigatória');
+    if (!courseData.instructor.trim()) errors.push('Instrutor é obrigatório');
+    if (!courseData.category) errors.push('Categoria é obrigatória');
+    if (courseData.price <= 0) errors.push('Preço deve ser maior que zero');
 
     // Validar módulos
     if (courseData.modules.length === 0) {
-      errors.push("O curso deve ter pelo menos um módulo")
+      errors.push('O curso deve ter pelo menos um módulo');
     } else {
       // Validar cada módulo
       courseData.modules.forEach((module, moduleIndex) => {
         if (!module.title.trim()) {
-          errors.push(`Título do módulo ${moduleIndex + 1} é obrigatório`)
+          errors.push(`Título do módulo ${moduleIndex + 1} é obrigatório`);
         }
 
         if (module.lessons.length === 0) {
-          errors.push(`Módulo ${moduleIndex + 1} deve ter pelo menos uma aula`)
+          errors.push(`Módulo ${moduleIndex + 1} deve ter pelo menos uma aula`);
         } else {
           // Validar cada aula
           module.lessons.forEach((lesson, lessonIndex) => {
             if (!lesson.title.trim()) {
-              errors.push(`Título da aula ${lessonIndex + 1} do módulo ${moduleIndex + 1} é obrigatório`)
+              errors.push(`Título da aula ${lessonIndex + 1} do módulo ${moduleIndex + 1} é obrigatório`);
             }
             if (!lesson.videoUrl.trim()) {
-              errors.push(`URL do vídeo da aula ${lessonIndex + 1} do módulo ${moduleIndex + 1} é obrigatória`)
+              errors.push(`URL do vídeo da aula ${lessonIndex + 1} do módulo ${moduleIndex + 1} é obrigatória`);
             }
-          })
+          });
         }
-      })
+      });
     }
 
-    return errors
-  }
+    return errors;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const validationErrors = validateCourse()
+    const validationErrors = validateCourse();
 
     if (validationErrors.length > 0) {
-      showError(`Corrija os seguintes erros:\n• ${validationErrors.join("\n• ")}`)
-      return
+      showError(`Corrija os seguintes erros:\n• ${validationErrors.join('\n• ')}`);
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    /*try {
+    try {
       const apiData: CourseDTO = {
         title: courseData.title,
         description: courseData.description,
@@ -265,10 +338,12 @@ export default function NovoCursoPage() {
         })),
       };
 
-      //const response = await apiService.addCourse(apiData);
+      const response = await apiService.addCourse(apiData);
 
       if (response.success && response.data) {
         success('Curso salvo com sucesso');
+        clearDraft();
+        router.push('/admin/cursos');
       } else {
         const messages = Array.isArray(response.error)
           ? response.error.join(', ')
@@ -280,11 +355,11 @@ export default function NovoCursoPage() {
       showError('Erro ao salvar curso');
     } finally {
       setIsLoading(false);
-    }*/
-  }
+    }
+  };
 
   return (
-    <ProtectedRoute allowedRoles={["ADMIN"]}>
+    <ProtectedRoute allowedRoles={['ADMIN']}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsCollapsed} />
 
@@ -294,22 +369,48 @@ export default function NovoCursoPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
                   <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                      Cadastrar Novo Curso
-                    </h1>
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                        Cadastrar Novo Curso
+                      </h1>
+                      {hasDraft && (
+                        <Badge
+                          variant="outline"
+                          className="border-green-300 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20"
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Rascunho salvo
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                       Crie um novo curso para sua plataforma
                     </p>
                   </div>
                 </div>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isLoading ? "Salvando..." : "Salvar Curso"}
-                </Button>
+                <div className="flex items-center gap-3">
+                  {hasDraft && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        clearDraft();
+                        info('Rascunho limpo com sucesso');
+                      }}
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-transparent"
+                    >
+                      Limpar Rascunho
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isLoading ? 'Salvando...' : 'Salvar Curso'}
+                  </Button>
+                </div>
               </div>
             </div>
           </header>
@@ -398,12 +499,11 @@ export default function NovoCursoPage() {
                               <SelectValue placeholder="Selecione uma categoria" />
                             </SelectTrigger>
                             <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                              <SelectItem value="Desenvolvimento Web">Desenvolvimento Web</SelectItem>
-                              <SelectItem value="Mobile">Mobile</SelectItem>
-                              <SelectItem value="Data Science">Data Science</SelectItem>
-                              <SelectItem value="Design">Design</SelectItem>
-                              <SelectItem value="Marketing">Marketing</SelectItem>
-                              <SelectItem value="Negócios">Negócios</SelectItem>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.value} value={cat.value}>
+                                  {cat.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
@@ -422,15 +522,11 @@ export default function NovoCursoPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="thumbnailUrl" className="text-sm font-medium text-gray-900 dark:text-white">
-                          URL da Imagem de Capa
-                        </Label>
-                        <Input
-                          id="thumbnailUrl"
+                        <ImageUpload
                           value={courseData.thumbnailUrl}
-                          onChange={(e) => setCourseData((prev) => ({ ...prev, thumbnailUrl: e.target.value }))}
-                          placeholder="https://exemplo.com/imagem.jpg"
-                          className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                          onChange={(url) => setCourseData((prev) => ({ ...prev, thumbnailUrl: url }))}
+                          label="Imagem de Capa do Curso"
+                          required={false}
                         />
                       </div>
                     </CardContent>
@@ -490,7 +586,7 @@ export default function NovoCursoPage() {
                               <div className="space-y-4">
                                 <Input
                                   value={module.title}
-                                  onChange={(e) => updateModule(module.id, "title", e.target.value)}
+                                  onChange={(e) => updateModule(module.id, 'title', e.target.value)}
                                   placeholder="Título do módulo *"
                                   required
                                   className="bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -539,7 +635,7 @@ export default function NovoCursoPage() {
                                       <div className="space-y-3">
                                         <Input
                                           value={lesson.title}
-                                          onChange={(e) => updateLesson(module.id, lesson.id, "title", e.target.value)}
+                                          onChange={(e) => updateLesson(module.id, lesson.id, 'title', e.target.value)}
                                           placeholder="Título da aula *"
                                           required
                                           className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -547,7 +643,7 @@ export default function NovoCursoPage() {
                                         <Input
                                           value={lesson.videoUrl}
                                           onChange={(e) =>
-                                            updateLesson(module.id, lesson.id, "videoUrl", e.target.value)
+                                            updateLesson(module.id, lesson.id, 'videoUrl', e.target.value)
                                           }
                                           placeholder="URL do vídeo (YouTube, Vimeo, etc.) *"
                                           required
@@ -555,7 +651,7 @@ export default function NovoCursoPage() {
                                         />
                                         <Input
                                           value={lesson.pdfUrl}
-                                          onChange={(e) => updateLesson(module.id, lesson.id, "pdfUrl", e.target.value)}
+                                          onChange={(e) => updateLesson(module.id, lesson.id, 'pdfUrl', e.target.value)}
                                           placeholder="URL do PDF (opcional)"
                                           className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                         />
@@ -613,5 +709,5 @@ export default function NovoCursoPage() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
