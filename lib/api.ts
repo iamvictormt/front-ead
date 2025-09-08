@@ -305,6 +305,12 @@ class ApiService {
     return this.request(endpoint);
   }
 
+  async getAllUsers(page = 1, limit = 20): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/users?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
   async getAllCourses(): Promise<ApiResponse<CourseAvailable[]>> {
     return this.request<CourseAvailable[]>(`/courses`, {
       method: 'GET',
@@ -498,6 +504,20 @@ class ApiService {
     return this.request(`/courses/my-courses/${courseId}/lessons/${lessonId}/complete`, {
       method: 'PATCH',
       body: JSON.stringify({ completed }),
+    });
+  }
+
+  async enrollCourse(userId: string, courseId: number, pricePaid: number) {
+    return this.request(`/courses/${courseId}/enroll`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, pricePaid }),
+    });
+  }
+
+  async giftCourse(userId: string, courseId: number) {
+    return this.request(`/courses/${courseId}/gift`, {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
     });
   }
 

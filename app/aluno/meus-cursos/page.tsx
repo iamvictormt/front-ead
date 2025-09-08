@@ -267,7 +267,7 @@ export default function MeusCursosPage() {
 
                             <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                               <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-yellow-500" />
+                                <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
                                 <span>{curso.rating || 0}</span>
                               </div>
                               <div className="flex items-center gap-1">

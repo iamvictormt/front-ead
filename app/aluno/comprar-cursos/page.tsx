@@ -7,13 +7,23 @@ import { useCart } from '@/contexts/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, Users, ShoppingCart, Loader2, Check } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Search, Star, Users, ShoppingCart, Loader2, Check, Gift } from 'lucide-react';
 import clsx from 'clsx';
 import { apiService, type CourseAvailable } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 import { CartSidebar } from '@/components/cart-sidebar';
 import { useSidebar } from '@/contexts/sidebar-context';
 import { formatKwanza } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ComprarCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -22,6 +32,11 @@ export default function ComprarCursosPage() {
   const [loading, setLoading] = useState(true);
   const { success, error: showError } = useToast();
   const { addToCart, isInCart, items, openCart } = useCart();
+  const [showFreeDialog, setShowFreeDialog] = useState(false);
+  const [selectedFreeCourse, setSelectedFreeCourse] = useState<CourseAvailable | null>(null);
+  const [enrolling, setEnrolling] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isCollapsed,
@@ -59,6 +74,12 @@ export default function ComprarCursosPage() {
   });
 
   const handleAddToCart = (course: CourseAvailable) => {
+    if (course.price === 0) {
+      setSelectedFreeCourse(course);
+      setShowFreeDialog(true);
+      return;
+    }
+
     const cartItem = {
       id: course.id.toString(),
       title: course.title,
@@ -72,6 +93,28 @@ export default function ComprarCursosPage() {
 
     addToCart(cartItem);
     success('Curso adicionado ao carrinho!');
+  };
+
+  const handleFreeCourseEnroll = async () => {
+    if (!selectedFreeCourse || !user?.id) return;
+
+    try {
+      setEnrolling(true);
+      const response = await apiService.enrollCourse(user.id, selectedFreeCourse.id, selectedFreeCourse.price);
+
+      if (response.success) {
+        success('Você foi matriculado no curso gratuito!');
+        setShowFreeDialog(false);
+        setSelectedFreeCourse(null);
+        router.push('/aluno/meus-cursos');
+      } else {
+        showError(response.error || 'Erro ao matricular no curso');
+      }
+    } catch (error) {
+      showError('Erro ao matricular no curso');
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   if (loading) {
@@ -216,12 +259,18 @@ export default function ComprarCursosPage() {
                             {/* Price and buy button */}
                             <div className="flex items-center justify-between">
                               <div className="text-2xl font-bold text-primary dark:text-blue-400">
-                                {formatKwanza(course.price)}
+                                {course.price === 0 ? (
+                                  <span className="text-green-600 dark:text-green-400 font-bold">Gratuito</span>
+                                ) : (
+                                  formatKwanza(course.price)
+                                )}
                               </div>
                               <Button
                                 className={clsx(
                                   'transition-all duration-200',
                                   inCart
+                                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                                    : course.price === 0
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
                                     : 'bg-accent hover:bg-accent/90 text-accent-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white'
                                 )}
@@ -232,6 +281,11 @@ export default function ComprarCursosPage() {
                                   <>
                                     <Check className="h-4 w-4 mr-2" />
                                     No Carrinho
+                                  </>
+                                ) : course.price === 0 ? (
+                                  <>
+                                    <Gift className="h-4 w-4 mr-2" />
+                                    Obter Grátis
                                   </>
                                 ) : (
                                   <>
@@ -270,6 +324,58 @@ export default function ComprarCursosPage() {
             </div>
           </main>
         </div>
+
+        {/* Dialog for free course confirmation */}
+        <Dialog open={showFreeDialog} onOpenChange={setShowFreeDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">Curso Gratuito</DialogTitle>
+              <DialogDescription>
+                Este curso é totalmente gratuito! Ao confirmar, você será automaticamente matriculado e redirecionado
+                para a sua área de cursos onde poderá começar a estudar imediatamente.
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedFreeCourse && (
+              <div className="py-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <img
+                    src={selectedFreeCourse.thumbnailUrl || '/placeholder.svg'}
+                    alt={selectedFreeCourse.title}
+                    className="w-12 h-12 rounded object-cover"
+                  />
+                  <div>
+                    <h4 className="font-medium text-sm">{selectedFreeCourse.title}</h4>
+                    <p className="text-xs text-muted-foreground">por {selectedFreeCourse.instructor}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowFreeDialog(false)} disabled={enrolling}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleFreeCourseEnroll}
+                disabled={enrolling}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {enrolling ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Matriculando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Confirmar Matrícula
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );

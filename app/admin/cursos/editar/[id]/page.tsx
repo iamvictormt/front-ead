@@ -56,6 +56,8 @@ export default function EditarCursoPage() {
   const params = useParams();
   const courseId = params.id as string;
   const { success, error: showError } = useToast();
+  const [price, setPrice] = useState<number>(0);
+  const [inputValue, setInputValue] = useState<string>('');
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isCollapsed,
@@ -84,6 +86,7 @@ export default function EditarCursoPage() {
         const response = await apiService.getCourse(courseId);
         if (response.success && response.data) {
           setCourseData(response.data);
+          setPrice(response.data.price);
         }
       } catch (error) {
         showError('Erro ao carregar dados do curso');
@@ -96,25 +99,24 @@ export default function EditarCursoPage() {
     loadCourse();
   }, [courseId, showError]);
 
+  useEffect(() => {
+    setInputValue(price > 0 ? formatKwanza(price) : '');
+  }, [courseData]);
+
   const formatRating = (value: string) => {
-    // Remove caracteres inválidos, mantém apenas números e ponto
     let cleaned = value.replace(/[^\d.]/g, '');
 
-    // Garante apenas um ponto decimal
     const parts = cleaned.split('.');
     if (parts.length > 2) {
       cleaned = parts[0] + '.' + parts.slice(1).join('');
     }
 
-    // Limita a uma casa decimal
     if (parts[1] && parts[1].length > 1) {
       cleaned = parts[0] + '.' + parts[1].substring(0, 1);
     }
 
-    // Converte para número para validar limites
     const numValue = Number.parseFloat(cleaned);
 
-    // Se exceder 5, limita a 5
     if (numValue > 5) {
       return '5.0';
     }
@@ -122,14 +124,32 @@ export default function EditarCursoPage() {
     return cleaned;
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatKwanza(e.target.value);
-    e.target.value = formatted;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value;
 
-    // Extrai o valor numérico para salvar no state
-    const numericValue =
-      formatted === 'Kz ' ? 0 : Number.parseFloat(formatted.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    setCourseData((prev) => ({ ...prev, price: numericValue }));
+    raw = raw.replace(/[^0-9,]/g, '');
+
+    const parts = raw.split(',');
+    if (parts.length > 2) {
+      raw = parts[0] + ',' + parts[1];
+    }
+
+    if (parts[1]?.length > 2) {
+      parts[1] = parts[1].slice(0, 2);
+      raw = parts.join(',');
+    }
+
+    const numericValue = Number(raw.replace(',', '.')) || 0;
+    setPrice(numericValue);
+    setInputValue(raw);
+  };
+
+  const handleBlur = () => {
+    setInputValue(formatKwanza(price));
+  };
+
+  const handleFocus = () => {
+    setInputValue(price === 0 ? '' : price.toString().replace('.', ','));
   };
 
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,7 +229,6 @@ export default function EditarCursoPage() {
     if (!courseData.description.trim()) errors.push('Descrição é obrigatória');
     if (!courseData.instructor.trim()) errors.push('Instrutor é obrigatório');
     if (!courseData.category) errors.push('Categoria é obrigatória');
-    if (courseData.price <= 0) errors.push('Preço deve ser maior que zero');
 
     // Validar módulos
     if (courseData.modules.length === 0) {
@@ -251,6 +270,7 @@ export default function EditarCursoPage() {
     }
 
     setIsLoading(true);
+    courseData.price = price;
 
     try {
       const response = await apiService.updateCourse(courseId, courseData);
@@ -370,9 +390,11 @@ export default function EditarCursoPage() {
                           <Input
                             id="price"
                             type="text"
-                            onChange={handlePriceChange}
+                            value={inputValue}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            onFocus={handleFocus}
                             placeholder="Kz 0,00"
-                            defaultValue={courseData.price > 0 ? formatKwanza(courseData.price) : 'Kz '}
                             required
                             className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                           />
