@@ -11,11 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Award, Camera, Save, Edit, Download } from "lucide-react"
+import { User, Mail, Award, Save, Edit, Download, Phone, MapPin, Briefcase, Calendar, Lock } from "lucide-react"
 import clsx from "clsx"
 import { useSidebar } from "@/contexts/sidebar-context"
 import { apiService } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/contexts/toast-context"
 
 export default function PerfilPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar()
@@ -24,7 +24,14 @@ export default function PerfilPage() {
   const [certificates, setCertificates] = useState([])
   const [loadingCertificates, setLoadingCertificates] = useState(false)
   const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null)
-  const { toast } = useToast()
+  const { success, error: showError } = useToast()
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
     "md:ml-42": isCollapsed,
@@ -34,6 +41,12 @@ export default function PerfilPage() {
   const [profileData, setProfileData] = useState({
     nome: user?.name || "",
     email: user?.email || "",
+    country: user?.country || "",
+    city: user?.city || "",
+    profession: user?.profession || "",
+    phone: user?.phone || "",
+    birthDate: user?.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
+    profilePic: user?.profilePic || "",
   })
 
   useEffect(() => {
@@ -41,6 +54,12 @@ export default function PerfilPage() {
       setProfileData({
         nome: user.name || "",
         email: user.email || "",
+        country: user.country || "",
+        city: user.city || "",
+        profession: user.profession || "",
+        phone: user.phone || "",
+        birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
+        profilePic: user.profilePic || "",
       })
     }
   }, [user])
@@ -82,19 +101,11 @@ export default function PerfilPage() {
       if (response.success && response.data) {
         setCertificates(response.data)
       } else {
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os certificados",
-          variant: "destructive",
-        })
+        showError("Não foi possível carregar os certificados")
       }
     } catch (error) {
       console.error("Error loading certificates:", error)
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar certificados",
-        variant: "destructive",
-      })
+      showError("Erro ao carregar certificados")
     } finally {
       setLoadingCertificates(false)
     }
@@ -114,24 +125,13 @@ export default function PerfilPage() {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
 
-        toast({
-          title: "Sucesso",
-          description: "Certificado baixado com sucesso!",
-        })
+        success("Certificado baixado com sucesso!")
       } else {
-        toast({
-          title: "Erro",
-          description: "Não foi possível baixar o certificado",
-          variant: "destructive",
-        })
+        showError("Não foi possível baixar o certificado")
       }
     } catch (error) {
       console.error("Error downloading certificate:", error)
-      toast({
-        title: "Erro",
-        description: "Erro ao baixar certificado",
-        variant: "destructive",
-      })
+      showError("Erro ao baixar certificado")
     } finally {
       setDownloadingCertificate(null)
     }
@@ -140,18 +140,78 @@ export default function PerfilPage() {
   const handleSave = async () => {
     const result = await updateProfile({
       name: profileData.nome,
-      email: profileData.email,
+      country: profileData.country,
+      city: profileData.city,
+      profession: profileData.profession,
+      phone: profileData.phone,
+      birthDate: profileData.birthDate ? new Date(profileData.birthDate) : null,
     })
 
     if (result.success) {
       setIsEditing(false)
+      success("Perfil atualizado com sucesso!")
     } else {
       console.error(result.error)
+      showError("Não foi possível atualizar o perfil")
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
     setProfileData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleProfilePicChange = (url: string) => {
+    apiService.updateProfile({ profilePic: url }).then((result) => {
+      if (result.success) {
+        success("Imagem de perfil atualizada com sucesso!")
+        setProfileData((prev) => ({
+          ...prev,
+          profilePic: url,
+        }))
+      } else {
+        showError("Não foi possível atualizar a imagem de perfil")
+      }
+    })
+  }
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError("As senhas não coincidem")
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      showError("A nova senha deve ter pelo menos 6 caracteres")
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const result = await apiService.changePassword(passwordData.currentPassword, passwordData.newPassword)
+
+      if (result.success) {
+        success("Senha alterada com sucesso!")
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        })
+      } else {
+        showError(result.error || "Não foi possível alterar a senha")
+      }
+    } catch (error) {
+      console.error("Error changing password:", error)
+      showError("Erro ao alterar senha")
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  const handlePasswordInputChange = (field: string, value: string) => {
+    setPasswordData((prev) => ({
       ...prev,
       [field]: value,
     }))
@@ -196,13 +256,19 @@ export default function PerfilPage() {
           <main className="flex-1 mt-14 md:mt-0">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
-                <Tabs defaultValue="perfil" className="md:space-y-8 space-y-20">
-                  <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 bg-gray-100 dark:bg-gray-800">
+                <Tabs defaultValue="perfil" className="space-y-8">
+                  <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 bg-gray-100 dark:bg-gray-800">
                     <TabsTrigger
                       value="perfil"
                       className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
                     >
                       Informações Pessoais
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="senha"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Alterar Senha
                     </TabsTrigger>
                     <TabsTrigger
                       value="conquistas"
@@ -224,9 +290,12 @@ export default function PerfilPage() {
                     <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
                       <CardContent className="pt-6">
                         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-                          <div className="relative">
-                            <Avatar className="w-24 h-24">
-                              <AvatarImage src="/placeholder.svg?height=96&width=96" />
+                          <div className="relative group pb-2 pr-2 md:pb-0 md:pr-0">
+                            <Avatar className="w-32 h-32 rounded-2xl">
+                              <AvatarImage
+                                src={profileData.profilePic || "/placeholder.svg?height=96&width=96"}
+                                key={profileData.profilePic} // Força re-render quando URL muda
+                              />
                               <AvatarFallback className="text-2xl">
                                 {profileData.nome
                                   .split(" ")
@@ -234,15 +303,64 @@ export default function PerfilPage() {
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
-                            {isEditing && (
-                              <button className="absolute bottom-0 right-0 p-1 bg-blue-600 dark:bg-blue-600 text-white rounded-full hover:bg-blue-700 dark:hover:bg-blue-700">
-                                <Camera className="w-4 h-4" />
-                              </button>
-                            )}
+
+                            {/* Overlay para desktop (hover) */}
+                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
+                              <label
+                                htmlFor="profile-pic-upload"
+                                className="cursor-pointer text-white text-xs text-center"
+                              >
+                                <User className="w-6 h-6 mx-auto mb-1" />
+                                Alterar
+                              </label>
+                            </div>
+
+                            {/* Botão visível para mobile */}
+                            <div className="absolute bottom-0 right-0 md:hidden">
+                              <label
+                                htmlFor="profile-pic-upload"
+                                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-lg transition-colors flex items-center justify-center"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </label>
+                            </div>
+
+                            <input
+                              id="profile-pic-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  console.log("[v0] Iniciando upload da imagem:", file.name)
+                                  const formData = new FormData()
+                                  formData.append("file", file)
+                                  try {
+                                    const response = await fetch("/api/upload", {
+                                      method: "POST",
+                                      body: formData,
+                                    })
+                                    const data = await response.json()
+                                    console.log("[v0] Resposta do upload:", data)
+                                    if (data && data.url) {
+                                      console.log("[v0] URL recebida:", data.url)
+                                      handleProfilePicChange(data.url)
+                                    }
+                                  } catch (error) {
+                                    console.error("[v0] Erro na requisição:", error)
+                                    showError("Erro ao fazer upload da imagem")
+                                  }
+                                }
+                              }}
+                            />
                           </div>
                           <div className="flex-1 text-center sm:text-left">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{profileData.nome}</h2>
                             <p className="text-gray-600 dark:text-gray-300 mt-1">{profileData.email}</p>
+                            {profileData.profession && (
+                              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{profileData.profession}</p>
+                            )}
                             <Badge className="mt-2">Aluno</Badge>
                           </div>
                         </div>
@@ -253,7 +371,7 @@ export default function PerfilPage() {
                     <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
                       <CardHeader>
                         <div className="flex items-center justify-between">
-                          <div>
+                          <div className="pr-2">
                             <CardTitle className="text-gray-900 dark:text-white">Informações Pessoais</CardTitle>
                             <CardDescription className="text-gray-600 dark:text-gray-300">
                               Gerencie suas informações pessoais e de contato
@@ -309,10 +427,271 @@ export default function PerfilPage() {
                                 id="email"
                                 type="email"
                                 value={profileData.email}
-                                onChange={(e) => handleInputChange("email", e.target.value)}
+                                // onChange={(e) => handleInputChange('email', e.target.value)}
+                                disabled={true}
+                                className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone" className="text-gray-700 dark:text-gray-300">
+                              Telefone
+                            </Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                              <Input
+                                id="phone"
+                                type="tel"
+                                value={profileData.phone}
+                                onChange={(e) => handleInputChange("phone", e.target.value)}
+                                disabled={!isEditing}
+                                placeholder="(11) 99999-9999"
+                                className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="birthDate" className="text-gray-700 dark:text-gray-300">
+                              Data de Nascimento
+                            </Label>
+                            <div className="relative">
+                              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                              <Input
+                                id="birthDate"
+                                type="date"
+                                value={profileData.birthDate}
+                                onChange={(e) => handleInputChange("birthDate", e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="country" className="text-gray-700 dark:text-gray-300">
+                              País
+                            </Label>
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                              <Input
+                                id="country"
+                                value={profileData.country}
+                                onChange={(e) => handleInputChange("country", e.target.value)}
+                                disabled={!isEditing}
+                                placeholder="Brasil"
+                                className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
+                              Cidade
+                            </Label>
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                              <Input
+                                id="city"
+                                value={profileData.city}
+                                onChange={(e) => handleInputChange("city", e.target.value)}
+                                disabled={!isEditing}
+                                placeholder="São Paulo"
+                                className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="profession" className="text-gray-700 dark:text-gray-300">
+                              Profissão
+                            </Label>
+                            <div className="relative">
+                              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                              <Input
+                                id="profession"
+                                value={profileData.profession}
+                                onChange={(e) => handleInputChange("profession", e.target.value)}
+                                disabled={!isEditing}
+                                placeholder="Desenvolvedor, Designer, etc."
+                                className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Alterar Senha Tab */}
+                  <TabsContent value="senha" className="space-y-6">
+                    <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
+                      <CardHeader>
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <CardTitle className="text-gray-900 dark:text-white">Alterar Senha</CardTitle>
+                            <CardDescription className="text-gray-600 dark:text-gray-300">
+                              Mantenha sua conta segura alterando sua senha regularmente
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Coluna da esquerda - Formulário */}
+                          <div className="space-y-4">
+                            {/* Senha Atual */}
+                            <div className="space-y-2">
+                              <Label htmlFor="currentPassword" className="text-gray-700 dark:text-gray-300">
+                                Senha Atual
+                              </Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                                <Input
+                                  id="currentPassword"
+                                  type="password"
+                                  value={passwordData.currentPassword}
+                                  onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
+                                  placeholder="Digite sua senha atual"
+                                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Nova Senha */}
+                            <div className="space-y-2">
+                              <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">
+                                Nova Senha
+                              </Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                                <Input
+                                  id="newPassword"
+                                  type="password"
+                                  value={passwordData.newPassword}
+                                  onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
+                                  placeholder="Digite sua nova senha"
+                                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                              {/* Indicador de força da senha */}
+                              {passwordData.newPassword && (
+                                <div className="flex items-center space-x-2 mt-2">
+                                  <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full transition-all duration-300 ${
+                                        passwordData.newPassword.length >= 6
+                                          ? "bg-green-500 w-full"
+                                          : passwordData.newPassword.length >= 3
+                                            ? "bg-yellow-500 w-2/3"
+                                            : "bg-red-500 w-1/3"
+                                      }`}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 min-w-fit">
+                                    {passwordData.newPassword.length >= 6
+                                      ? "Forte"
+                                      : passwordData.newPassword.length >= 3
+                                        ? "Média"
+                                        : "Fraca"}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Confirmar Senha */}
+                            <div className="space-y-2">
+                              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">
+                                Confirmar Nova Senha
+                              </Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                                <Input
+                                  id="confirmPassword"
+                                  type="password"
+                                  value={passwordData.confirmPassword}
+                                  onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
+                                  placeholder="Confirme sua nova senha"
+                                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                              {/* Validação de confirmação */}
+                              {passwordData.confirmPassword && (
+                                <div className="flex items-center space-x-2 mt-2">
+                                  {passwordData.newPassword === passwordData.confirmPassword ? (
+                                    <div className="flex items-center text-green-600 dark:text-green-400">
+                                      <div className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full mr-2"></div>
+                                      <span className="text-xs">Senhas coincidem</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center text-red-600 dark:text-red-400">
+                                      <div className="w-2 h-2 bg-red-600 dark:bg-red-400 rounded-full mr-2"></div>
+                                      <span className="text-xs">Senhas não coincidem</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Botão de Alterar */}
+                            <div className="pt-2">
+                              <Button
+                                onClick={handleChangePassword}
+                                disabled={
+                                  isChangingPassword ||
+                                  !passwordData.currentPassword ||
+                                  !passwordData.newPassword ||
+                                  !passwordData.confirmPassword ||
+                                  passwordData.newPassword !== passwordData.confirmPassword ||
+                                  passwordData.newPassword.length < 6
+                                }
+                                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50"
+                              >
+                                {isChangingPassword ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Alterando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Lock className="w-4 h-4 mr-2" />
+                                    Alterar Senha
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Coluna da direita - Dicas de Segurança */}
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center">
+                                <div className="w-4 h-4 bg-blue-600 dark:bg-blue-400 rounded-full mr-2"></div>
+                                Dicas de Segurança
+                              </h4>
+                              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">•</span>
+                                  Use pelo menos 6 caracteres
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">•</span>
+                                  Combine letras, números e símbolos
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">•</span>
+                                  Evite informações pessoais
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">•</span>
+                                  Não reutilize senhas de outras contas
+                                </li>
+                              </ul>
+                            </div>
+
+                            <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                                Recomendamos alterar regularmente.
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Alterar sua senha regularmente ajuda a proteger sua conta contra acessos não autorizados.
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -325,7 +704,6 @@ export default function PerfilPage() {
                     <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
                       <CardHeader>
                         <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                          <Award className="w-5 h-5 mr-2" />
                           Suas Conquistas
                         </CardTitle>
                         <CardDescription className="text-gray-600 dark:text-gray-300">
@@ -333,11 +711,11 @@ export default function PerfilPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {conquistas.map((conquista) => (
                             <div
                               key={conquista.id}
-                              className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                              className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg shadow-sm dark:shadow-gray-700/20"
                             >
                               <div className="text-2xl">{conquista.icone}</div>
                               <div className="flex-1">

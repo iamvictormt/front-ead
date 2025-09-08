@@ -13,6 +13,7 @@ import { apiService, type CourseAvailable } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 import { CartSidebar } from '@/components/cart-sidebar';
 import { useSidebar } from '@/contexts/sidebar-context';
+import { formatKwanza } from '@/lib/utils';
 
 export default function ComprarCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -56,14 +57,6 @@ export default function ComprarCursosPage() {
     const searchLower = searchTerm.toLowerCase();
     return course.title.toLowerCase().includes(searchLower) || course.instructor.toLowerCase().includes(searchLower);
   });
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 2,
-    }).format(price);
-  };
 
   const handleAddToCart = (course: CourseAvailable) => {
     const cartItem = {
@@ -223,7 +216,7 @@ export default function ComprarCursosPage() {
                             {/* Price and buy button */}
                             <div className="flex items-center justify-between">
                               <div className="text-2xl font-bold text-primary dark:text-blue-400">
-                                {formatPrice(course.price)}
+                                {formatKwanza(course.price)}
                               </div>
                               <Button
                                 className={clsx(

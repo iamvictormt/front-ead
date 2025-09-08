@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import clsx from 'clsx';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
+import { formatKwanza } from '@/lib/utils';
 
 export default function AdminCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -77,28 +78,6 @@ export default function AdminCursosPage() {
     );
   });
 
-  const formatPrice = (price: number) => {
-    return `Kz ${price.toFixed(2).replace('.', ',')}`;
-  };
-
-  const formatPriceInput = (value: string) => {
-    // Remove tudo exceto números e vírgula/ponto
-    const numbers = value.replace(/[^\d.,]/g, '');
-
-    // Se estiver vazio, retorna "Kz "
-    if (!numbers) return 'Kz ';
-
-    // Substitui vírgula por ponto para cálculos
-    const normalizedNumbers = numbers.replace(',', '.');
-
-    // Formata o número
-    const numericValue = Number.parseFloat(normalizedNumbers);
-    if (isNaN(numericValue)) return 'Kz ';
-
-    // Retorna formatado
-    return `Kz ${numericValue.toFixed(2).replace('.', ',')}`;
-  };
-
   const handleEditCourse = (course: CourseAvailable) => {
     window.location.href = `/admin/cursos/editar/${course.id}`;
   };
@@ -142,7 +121,7 @@ export default function AdminCursosPage() {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPriceInput(e.target.value);
+    const formatted = formatKwanza(e.target.value);
     setEditForm((prev) => ({ ...prev, price: formatted }));
   };
 
@@ -340,7 +319,7 @@ export default function AdminCursosPage() {
                           {/* Price and action buttons */}
                           <div className="flex items-center justify-between">
                             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                              {formatPrice(course.price || 0)}
+                              {formatKwanza(course.price || 0)}
                             </div>
                             <div className="flex gap-2">
                               {!course.deactivatedIn && (

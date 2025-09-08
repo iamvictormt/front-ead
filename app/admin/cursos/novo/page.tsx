@@ -19,6 +19,7 @@ import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
 import { apiService, type CourseDTO } from '@/lib/api';
 import { ImageUpload } from '@/components/image-upload';
+import { formatKwanza } from '@/lib/utils';
 
 interface Lesson {
   id: string;
@@ -143,23 +144,6 @@ export default function NovoCursoPage() {
     }
   }, [courseData]);
 
-  const formatPrice = (value: string) => {
-    // Remove tudo que não é número
-    const numericValue = value.replace(/[^\d]/g, '');
-
-    if (!numericValue) return 'Kz ';
-
-    // Converte para número e divide por 100 para ter centavos
-    const number = Number.parseInt(numericValue) / 100;
-
-    // Formata como moeda angolana
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 2,
-    }).format(number);
-  };
-
   const formatRating = (value: string) => {
     // Remove caracteres inválidos, mantém apenas números e ponto
     let cleaned = value.replace(/[^\d.]/g, '');
@@ -187,7 +171,7 @@ export default function NovoCursoPage() {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPrice(e.target.value);
+    const formatted = formatKwanza(e.target.value);
     e.target.value = formatted;
 
     // Extrai o valor numérico para salvar no state

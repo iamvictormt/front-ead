@@ -30,6 +30,12 @@ interface User {
   id?: string;
   name: string;
   email: string;
+  country?: string;
+  profilePic?: string;
+  city?: string;
+  profession?: string;
+  phone?: string;
+  birthDate?: Date | null;
   role: 'ADMIN' | 'STUDENT';
   createdAt: string;
 }
@@ -264,9 +270,16 @@ class ApiService {
   }
 
   async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request<User>('/auth/profile', {
-      method: 'PUT',
+    return this.request<User>('/users', {
+      method: 'PATCH',
       body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(oldPassword: string, newPassword: string): Promise<ApiResponse> {
+    return this.request('/users/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ oldPassword, newPassword }),
     });
   }
 
@@ -385,16 +398,8 @@ class ApiService {
   }
 
   // Dashboard Stats
-  async getAdminStats(): Promise<
-    ApiResponse<{
-      totalStudents: number;
-      totalCourses: number;
-      activeCourses: number;
-      monthlyRevenue: number;
-      completionRate: number;
-    }>
-  > {
-    return this.request('/admin/stats');
+  async getAdminStats(): Promise<ApiResponse<any>> {
+    return this.request('/dashboard/admin');
   }
 
   async getStudentStats(): Promise<

@@ -1,24 +1,71 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useAuth } from "@/contexts/auth-context"
-import { useSidebar } from "@/contexts/sidebar-context"
-import clsx from "clsx"
-import Link from "next/link"
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useAuth } from '@/contexts/auth-context';
+import { useSidebar } from '@/contexts/sidebar-context';
+import { useApi } from '@/hooks/use-api';
+import { useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import clsx from 'clsx';
+import Link from 'next/link';
+import { apiService } from '@/lib/api';
+import { formatKwanza } from '@/lib/utils';
+
+interface DashboardData {
+  recentUsers: Array<{
+    name: string;
+    email: string;
+    profilePic: string | null;
+    createdAt: string;
+  }>;
+  totalStudents: number;
+  activeCourses: number;
+  monthlyRevenue: number;
+  totalPurchases: number;
+  topCourses: Array<{
+    courseId: number;
+    _count: { courseId: number };
+    title: string;
+  }>;
+}
 
 export default function AdminDashboard() {
-  const { isCollapsed, setIsCollapsed } = useSidebar()
-  const { user } = useAuth()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
 
-  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
-    "md:ml-42": isCollapsed,
-    "md:ml-80": !isCollapsed,
-    "pt-14 md:pt-0": true,
-  })
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const response = await apiService.getAdminStats();
+        setDashboardData(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar dados da dashboard:', error);
+      }
+    };
+
+    loadDashboardData();
+  }, [apiService]);
+
+  const formatRelativeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) return 'Hoje';
+    if (diffInDays === 1) return 'Ontem';
+    return `Há ${diffInDays} dias`;
+  };
+
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
+    'pt-14 md:pt-0': true,
+  });
 
   return (
-    <ProtectedRoute allowedRoles={["ADMIN"]}>
+    <ProtectedRoute allowedRoles={['ADMIN']}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsCollapsed} />
 
@@ -28,16 +75,16 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white ml-12 md:ml-0">
-                    Olá, {user?.name?.split(" ")[0]}! 👨‍💼
+                    Olá, {user?.name?.split(' ')[0]}! 👨‍💼
                   </h1>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-4">
                   <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
-                    {new Date().toLocaleDateString("pt-BR", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
+                    {new Date().toLocaleDateString('pt-BR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
                     })}
                   </div>
                 </div>
@@ -45,7 +92,6 @@ export default function AdminDashboard() {
             </div>
           </header>
 
-          {/* Main Content */}
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
@@ -71,7 +117,9 @@ export default function AdminDashboard() {
                         <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300">
                           Total de Alunos
                         </p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">1,234</p>
+                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+                          {dashboardData?.totalStudents || 0}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -95,7 +143,9 @@ export default function AdminDashboard() {
                       </div>
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300">Cursos Ativos</p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">56</p>
+                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+                          {dashboardData?.activeCourses || 0}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -121,7 +171,9 @@ export default function AdminDashboard() {
                         <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300">
                           Receita Mensal
                         </p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">R$ 45.2k</p>
+                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+                          {dashboardData ? formatKwanza(dashboardData.monthlyRevenue) : 'Kz 0,00'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -139,50 +191,94 @@ export default function AdminDashboard() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                           />
                         </svg>
                       </div>
                       <div className="ml-3 md:ml-4">
                         <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300">
-                          Taxa de Conclusão
+                          Total de Vendas
                         </p>
-                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">87%</p>
+                        <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+                          {dashboardData?.totalPurchases || 0}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-                  {/* Recent Students */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 overflow-hidden">
                     <div className="bg-[#121F3F] dark:bg-gray-900 px-6 py-4">
                       <h3 className="text-lg font-semibold text-white">Alunos Recentes</h3>
                     </div>
                     <div className="p-6">
                       <div className="space-y-4">
-                        {[1, 2, 3, 4].map((item) => (
+                        {dashboardData?.recentUsers?.map((user, index) => (
                           <div
-                            key={item}
+                            key={index}
                             className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                           >
-                            <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-200 flex-shrink-0">
-                              A{item}
-                            </div>
+                            <Avatar className="w-10 h-10 flex-shrink-0">
+                              <AvatarImage src={user.profilePic || undefined} alt={user.name} />
+                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                                {user.name
+                                  .split(' ')
+                                  .map((n) => n[0])
+                                  .join('')
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">Aluno {item}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">aluno{item}@email.com</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-                              Há {item} dia{item > 1 ? "s" : ""}
+                              {formatRelativeDate(user.createdAt)}
                             </div>
                           </div>
-                        ))}
+                        )) || (
+                          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <p className="text-sm">Nenhum usuário recente encontrado</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Course Management */}
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 overflow-hidden">
+                    <div className="bg-[#121F3F] dark:bg-gray-900 px-6 py-4">
+                      <h3 className="text-lg font-semibold text-white">Top Cursos</h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="space-y-4">
+                        {dashboardData?.topCourses?.map((course, index) => (
+                          <div
+                            key={course.courseId}
+                            className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                          >
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {course.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {course._count.courseId} {course._count.courseId === 1 ? 'aluno' : 'alunos'}
+                              </p>
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">#{index + 1}</div>
+                          </div>
+                        )) || (
+                          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <p className="text-sm">Nenhum curso encontrado</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 overflow-hidden">
                     <div className="bg-[#121F3F] dark:bg-gray-900 px-6 py-4">
                       <h3 className="text-lg font-semibold text-white">Gerenciar Cursos</h3>
@@ -321,5 +417,5 @@ export default function AdminDashboard() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

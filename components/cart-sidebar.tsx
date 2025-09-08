@@ -6,19 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, ShoppingBag, Trash2, CreditCard } from 'lucide-react';
 import Image from 'next/image';
+import { formatKwanza } from '@/lib/utils';
 
 export function CartSidebar() {
   const { items, removeFromCart, clearCart, getTotalPrice, getTotalItems, isOpen, closeCart } = useCart();
 
   if (!isOpen) return null;
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 2,
-    }).format(price);
-  };
 
   return (
     <>
@@ -87,7 +80,7 @@ export function CartSidebar() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm line-clamp-2 mb-1 dark:text-white">{item.title}</h4>
                       <p className="text-xs text-muted-foreground dark:text-gray-400 mb-2">{item.instructor.name}</p>
-                      <p className="font-semibold text-sm text-primary dark:text-blue-400">{formatPrice(item.price)}</p>
+                      <p className="font-semibold text-sm text-primary dark:text-blue-400">{formatKwanza(item.price)}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -107,7 +100,7 @@ export function CartSidebar() {
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold dark:text-white">Total:</span>
                 <span className="text-xl font-bold text-primary dark:text-blue-400">
-                  {formatPrice(getTotalPrice())}
+                  {formatKwanza(getTotalPrice())}
                 </span>
               </div>
 

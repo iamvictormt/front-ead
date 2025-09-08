@@ -46,6 +46,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { formatKwanza } from '@/lib/utils';
 
 const CommentItem = ({
   comment,
@@ -718,11 +719,7 @@ export default function CursoPage() {
 
                       <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 rounded-md px-3 py-1 text-green-600 dark:text-green-400">
                         <ShoppingCart className="w-4 h-4 " />
-                        <span className="text-sm font-medium ">
-                          {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(
-                            selectedCourse.pricePaid
-                          )}
-                        </span>
+                        <span className="text-sm font-medium ">{formatKwanza(selectedCourse.pricePaid)}</span>
                       </div>
                     </div>
                   </div>
@@ -946,15 +943,14 @@ export default function CursoPage() {
                                 <p className="text-sm text-primary dark:text-primary-foreground font-medium mb-2">
                                   Comentários para: <strong>{selectedLesson.title}</strong>
                                 </p>
-        
-                                                              <Button
+
+                                <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => loadLessonComments(selectedLesson.id)}
                                 >
                                   <Loader className="w-4 h-4 mr-1" />
-                                                                    Carregar Comentários
-
+                                  Carregar Comentários
                                 </Button>
                               </div>
 
