@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Lock, Mail, User2 } from 'lucide-react';
+import { UserPlus, Trash2, Lock, Mail, User2, Info, BadgeInfo } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { apiService, type User } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
@@ -414,7 +414,7 @@ export default function ConfiguracoesAdminPage() {
                             </div>
                             <div>
                               <CardTitle className="text-gray-900 dark:text-white">Administradores</CardTitle>
-                              <CardDescription className="text-gray-600 dark:text-gray-300">
+                              <CardDescription className="text-gray-600 dark:text-gray-300 font-normal">
                                 Gerencie os administradores do sistema
                               </CardDescription>
                             </div>
@@ -560,6 +560,11 @@ export default function ConfiguracoesAdminPage() {
                           <div className="flex items-center justify-center py-8">
                             <LoadingSpinner className="w-6 h-6 mr-2" />
                             <span>Carregando administradores...</span>
+                          </div>
+                        ) : admins.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
+                            <BadgeInfo className="w-6 h-6 mb-2" />
+                            <span>Nenhum outro administrador encontrado.</span>
                           </div>
                         ) : (
                           <div className="space-y-4">
