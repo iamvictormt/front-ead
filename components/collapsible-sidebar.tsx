@@ -11,6 +11,7 @@ import {
   Moon,
   Sun,
   GraduationCap,
+  Cog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
         { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard', path: '/admin' },
         { id: 'cursos', icon: BookOpen, label: 'Cursos', path: '/admin/cursos' },
         { id: 'alunos', icon: GraduationCap, label: 'Alunos', path: '/admin/alunos' },
+        { id: 'configuracoes', icon: Cog, label: 'Configurações', path: '/admin/configuracoes' },
       ];
     } else if (user?.role === 'STUDENT') {
       return [

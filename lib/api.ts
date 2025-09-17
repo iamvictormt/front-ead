@@ -250,6 +250,19 @@ class ApiService {
     });
   }
 
+  async createAdmin(createUser: CreateUserRequest): Promise<ApiResponse<LoginResponse>> {
+    return this.request<LoginResponse>('/auth/register-admin', {
+      method: 'POST',
+      body: JSON.stringify(createUser),
+    });
+  }
+
+  async deleteAdmin(id: string): Promise<ApiResponse> {
+    return this.request(`/users/admins/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
@@ -478,6 +491,10 @@ class ApiService {
 
   async getLessonComments(lessonId: number): Promise<ApiResponse<Comment[]>> {
     return this.request<Comment[]>(`/comments/lesson/${lessonId}`);
+  }
+
+  async getAllAdmins(): Promise<ApiResponse<User[]>> {
+    return this.request<User[]>(`/users/admins`);
   }
 
   async addLessonComment(lessonId: number, content: string, parentId?: number): Promise<ApiResponse<Comment>> {

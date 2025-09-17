@@ -1,65 +1,65 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Eye, EyeOff, Mail, Lock } from "lucide-react"
-import ImageSlider from "@/components/image-slider"
-import { useAuth } from "@/contexts/auth-context"
-import { useToast } from "@/contexts/toast-context"
-import Image from "next/image"
-import { useTheme } from "next-themes"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import ImageSlider from '@/components/image-slider';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/contexts/toast-context';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
-  const { login, isLoading } = useAuth()
-  const [loginError, setLoginError] = useState("")
-  const { success, error: showError } = useToast()
+  const { login, isLoading } = useAuth();
+  const [loginError, setLoginError] = useState('');
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
-    if (theme && theme !== "light") {
-      localStorage.setItem("originalTheme", theme)
+    if (theme && theme !== 'light') {
+      localStorage.setItem('originalTheme', theme);
     }
-    setTheme("light")
+    setTheme('light');
 
     return () => {
-      const originalTheme = localStorage.getItem("originalTheme")
+      const originalTheme = localStorage.getItem('originalTheme');
       if (originalTheme) {
-        setTheme(originalTheme)
-        localStorage.removeItem("originalTheme")
+        setTheme(originalTheme);
+        localStorage.removeItem('originalTheme');
       }
-    }
-  }, [theme, setTheme])
+    };
+  }, [theme, setTheme]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoginError("")
+    e.preventDefault();
+    setLoginError('');
 
-    const result = await login(email, password)
+    const result = await login(email, password);
 
     if (result.success) {
-      const originalTheme = localStorage.getItem("originalTheme")
+      const originalTheme = localStorage.getItem('originalTheme');
       if (originalTheme) {
-        setTheme(originalTheme)
-        localStorage.removeItem("originalTheme")
+        setTheme(originalTheme);
+        localStorage.removeItem('originalTheme');
       }
-      router.push("/")
-      success("Login realizado com sucesso!", "Bem-vindo")
+      router.push('/');
+      success('Login realizado com sucesso!', 'Bem-vindo');
     } else {
-      showError(result.error || "Erro ao fazer login. Tente novamente.")
+      showError(result.error || 'Erro ao fazer login. Tente novamente.');
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex" data-theme="light">
@@ -106,7 +106,7 @@ export default function LoginPage() {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Digite sua senha"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -153,7 +153,7 @@ export default function LoginPage() {
                       <span>Entrando...</span>
                     </div>
                   ) : (
-                    "Entrar"
+                    'Entrar'
                   )}
                 </Button>
               </form>
@@ -166,7 +166,7 @@ export default function LoginPage() {
 
               <div className="text-center mt-4 md:mt-6">
                 <p className="text-sm text-gray-600">
-                  Não tem uma conta?{" "}
+                  Não tem uma conta?{' '}
                   <Link href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
                     Cadastre-se
                   </Link>
@@ -181,5 +181,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

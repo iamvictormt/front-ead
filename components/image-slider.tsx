@@ -1,88 +1,89 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const slides = [
   {
     id: 1,
-    image: "/placeholder.svg?height=800&width=800&text=Colaboração",
-    title: "Colabore com sua equipe",
-    description: "Trabalhe em conjunto e alcance resultados extraordinários com nossa plataforma."
+    image:
+      '/conceito-de-marketing-de-midia-social-para-marketing-com-aplicativos.jpg?height=800&width=800&text=Colaboração',
+    title: 'Registe-se e descubra a nossa oferta formativa',
+    description: 'Tenha acesso imediato ao curso gratuito de Marketing Digital para iniciante.',
   },
   {
     id: 2,
-    image: "/placeholder.svg?height=800&width=800&text=Analytics",
-    title: "Analise seus dados",
-    description: "Tome decisões inteligentes com insights poderosos e relatórios detalhados."
+    image: '/icone-da-comunidade-digital-hub-de-midia.jpg?height=800&width=800&text=Analytics',
+    title: 'Curso gratuito de Marketing Digital',
+    description: 'Tenha acesso à melhor curso de marketing digital do mercado.',
   },
   {
     id: 3,
-    image: "/placeholder.svg?height=800&width=800&text=Projetos",
-    title: "Gerencie projetos",
-    description: "Organize, planeje e execute seus projetos com eficiência máxima."
+    image: '/maos-segurando-o-conceito-de-midia-social-smartphone.jpg?height=800&width=800&text=Projetos',
+    title: 'Vantagens exclusivas da IMDN',
+    description: 'Metodologia prática, conteúdos actualizados e formadores experientes.',
   },
   {
     id: 4,
-    image: "/placeholder.svg?height=800&width=800&text=Produtividade",
-    title: "Aumente sua produtividade",
-    description: "Ferramentas intuitivas que simplificam seu trabalho diário."
-  }
-]
+    image: '/campaign-creators-yktK2qaiVHI-unsplash.jpg?height=800&width=800&text=Produtividade',
+    title: 'Curso de Transformação Digital',
+    description: 'Especialize-se em Marketing Online e prepare-se para os desafios do futuro.',
+  },
+];
 
 export default function ImageSlider() {
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 5000) // Muda a cada 5 segundos
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000); // Muda a cada 5 segundos
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
 
   const goToSlide = (index: number) => {
-    setCurrentSlide(index)
-  }
+    setCurrentSlide(index);
+  };
 
   return (
     <div className="relative h-full overflow-hidden">
       {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out opacity"
         style={{
-          backgroundImage: `url(${slides[currentSlide].image})`
+          backgroundImage: `url(${slides[currentSlide].image})`,
         }}
       />
-      
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/50" />
+
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/7" />
 
       {/* Pattern Overlay */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
       </div>
 
       {/* Content */}
       <div className="relative h-full flex flex-col justify-center items-center text-white p-12 z-10">
         <div className="max-w-lg text-center">
           {/* Content */}
-          <h2 className="text-4xl font-bold mb-6 drop-shadow-lg">
-            {slides[currentSlide].title}
-          </h2>
-          <p className="text-xl opacity-90 leading-relaxed drop-shadow-md">
-            {slides[currentSlide].description}
-          </p>
+          <h2 className="text-4xl font-bold mb-6 drop-shadow-lg">{slides[currentSlide].title}</h2>
+          <p className="text-xl opacity-90 leading-relaxed drop-shadow-md">{slides[currentSlide].description}</p>
         </div>
 
         {/* Navigation Arrows */}
@@ -113,8 +114,8 @@ export default function ImageSlider() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Manter também a exportação nomeada para compatibilidade
-export { ImageSlider }
+export { ImageSlider };
