@@ -273,7 +273,7 @@ export default function AdminCursosPage() {
                             {course.deactivatedIn && (
                               <Badge
                                 variant="secondary"
-                                className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
+                                className="bg-red-100 text-red-800 border border-red-200 dark:border-red-800"
                               >
                                 Desativado em {new Date(course.deactivatedIn).toLocaleDateString('pt-BR')}
                               </Badge>
