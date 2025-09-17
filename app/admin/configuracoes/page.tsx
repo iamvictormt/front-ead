@@ -554,9 +554,6 @@ export default function ConfiguracoesAdminPage() {
                             </DialogContent>
                           </Dialog>
                         </CardTitle>
-                        <CardDescription className="text-gray-600 dark:text-gray-300">
-                          Gerencie os administradores do sistema
-                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         {loadingAdmins ? (

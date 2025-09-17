@@ -9,8 +9,8 @@ import { CartProvider } from '@/contexts/cart-context';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'IMDN - Instituto de Marketing Digital e Novas Negócios',
-  description: 'Plataforma de cursos online do IMDN - Instituto de Marketing Digital e Novos Negócios.',
+  title: 'IMDN - Instituto de Marketing Digital e Negócios',
+  description: 'Plataforma de cursos online do IMDN - Instituto de Marketing Digital e Negócios.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
