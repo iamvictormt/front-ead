@@ -53,7 +53,7 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
       case '/admin/configuracoes':
         return 'Configurações';
       default:
-        return 'LOGO';
+        return 'IMDN';
     }
   };
 
