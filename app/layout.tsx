@@ -9,8 +9,8 @@ import { CartProvider } from '@/contexts/cart-context';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'IMDN - Instituto de Marketing Digital e Negócios',
-  description: 'Plataforma de cursos online do IMDN - Instituto de Marketing Digital e Negócios.',
+  title: 'IMDN - Instituto de Marketing Digital e Negócio',
+  description: 'Plataforma de cursos online do IMDN - Instituto de Marketing Digital e Negócio.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +24,8 @@ html {
   --font-mono: ${GeistMono.variable};
 }
         `}</style>
+
+        <meta name="apple-mobile-web-app-title" content="IMDN" />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

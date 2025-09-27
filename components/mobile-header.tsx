@@ -37,7 +37,9 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
       case '/aluno/comprar-cursos':
         return 'Comprar Cursos';
       case '/aluno/perfil':
-        return 'Perfil';
+        return 'Meu Perfil';
+      case `/aluno/curso/${pathname.split('/').pop()}`:
+        return 'Assistindo Curso';
       case '/admin':
         return 'Dashboard Admin';
       case '/admin/cursos':
@@ -48,6 +50,8 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
         return 'Editar Curso';
       case '/admin/alunos':
         return 'Gerenciar Alunos';
+      case '/admin/configuracoes':
+        return 'Configurações';
       default:
         return 'LOGO';
     }

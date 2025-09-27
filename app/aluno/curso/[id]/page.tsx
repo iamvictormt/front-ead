@@ -305,6 +305,7 @@ export default function CursoPage() {
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isCollapsed,
     'md:ml-80': !isCollapsed,
+    'pt-14 md:pt-0': true,
   });
 
   const handleReplyToggle = useCallback(
@@ -680,7 +681,7 @@ export default function CursoPage() {
 
         <div className={`${contentMargin} transition-all duration-300 ease-in-out flex flex-col min-h-screen`}>
           <header className="hidden md:inline md:px-6 top-0 md:top-4 sticky md:relative z-40 mb-6 md:mb-8">
-            <div className="bg-[#121F3F] md:bg-white md:dark:bg-gray-800 md:rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6">
+            <div className="bg-[#121F3F] md:bg-white md:dark:bg-gray-800 md:rounded-lg shadow dark:shadow-gray-700/20 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white ml-12 md:ml-0">
                   Assistindo Curso
@@ -697,33 +698,34 @@ export default function CursoPage() {
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto space-y-6">
-                <div className="flex items-start gap-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-                  <img
-                    src={selectedCourse.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
-                    alt={selectedCourse.title}
-                    className="w-60 h-32 object-cover rounded-lg hidden md:block"
-                  />
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{selectedCourse.title}</h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedCourse.description}</p>
-                    <div className="flex flex-wrap gap-3">
-                      <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-md px-3 py-1 text-yellow-600 dark:text-yellow-400">
-                        <Star className="w-4 h-4" />
-                        <span className="text-sm font-medium">{selectedCourse.rating || 0.0} avaliações</span>
-                      </div>
+<div className="flex flex-col md:flex-row items-start gap-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+  <img
+    src={selectedCourse.thumbnailUrl || '/placeholder.svg?height=200&width=300'}
+    alt={selectedCourse.title}
+    className="w-full md:w-60 h-32 md:h-32 object-cover rounded-lg"
+  />
+  <div className="flex-1">
+    <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{selectedCourse.title}</h2>
+    <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedCourse.description}</p>
+    <div className="flex flex-wrap gap-3">
+      <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-md px-3 py-1 text-yellow-600 dark:text-yellow-400">
+        <Star className="w-4 h-4" />
+        <span className="text-sm font-medium">{selectedCourse.rating || 0.0} avaliações</span>
+      </div>
 
-                      <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 rounded-md px-3 py-1 text-blue-600 dark:text-blue-400">
-                        <Users className="w-4 h-4" />
-                        <span className="text-sm font-medium">{selectedCourse.studentsCount || 0} alunos</span>
-                      </div>
+      <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 rounded-md px-3 py-1 text-blue-600 dark:text-blue-400">
+        <Users className="w-4 h-4" />
+        <span className="text-sm font-medium">{selectedCourse.studentsCount || 0} alunos</span>
+      </div>
 
-                      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 rounded-md px-3 py-1 text-green-600 dark:text-green-400">
-                        <ShoppingCart className="w-4 h-4 " />
-                        <span className="text-sm font-medium ">{formatKwanza(selectedCourse.pricePaid)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 rounded-md px-3 py-1 text-green-600 dark:text-green-400">
+        <ShoppingCart className="w-4 h-4 " />
+        <span className="text-sm font-medium">{formatKwanza(selectedCourse.pricePaid)}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 
                 {selectedLesson && (
                   <Card className="overflow-hidden py-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
