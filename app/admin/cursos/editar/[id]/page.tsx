@@ -77,27 +77,26 @@ export default function EditarCursoPage() {
     modules: [],
   });
 
-  useEffect(() => {
-    const loadCourse = async () => {
-      if (!courseId) return;
+  const loadCourse = async () => {
+    if (!courseId) return;
 
-      setIsLoadingCourse(true);
-      try {
-        const response = await apiService.getCourse(courseId);
-        if (response.success && response.data) {
-          setCourseData(response.data);
-          setPrice(response.data.price);
-        }
-      } catch (error) {
-        showError('Erro ao carregar dados do curso');
-        setIsLoadingCourse(false);
-      } finally {
-        setIsLoadingCourse(false);
+    setIsLoadingCourse(true);
+    try {
+      const response = await apiService.getCourse(courseId);
+      if (response.success && response.data) {
+        setCourseData(response.data);
+        setPrice(response.data.price);
       }
-    };
+    } catch (error) {
+      showError('Erro ao carregar dados do curso');
+    } finally {
+      setIsLoadingCourse(false);
+    }
+  };
 
+  useEffect(() => {
     loadCourse();
-  }, [courseId, showError]);
+  }, [courseId]);
 
   useEffect(() => {
     setInputValue(formatKwanza(price));
@@ -308,7 +307,8 @@ export default function EditarCursoPage() {
       const response = await apiService.updateCourse(courseId, cleanedData);
       if (response.success) {
         success('Curso atualizado com sucesso');
-        router.push('/admin/cursos');
+        setIsLoading(false);
+        loadCourse();
       }
     } catch (error) {
       showError('Erro ao atualizar curso');
