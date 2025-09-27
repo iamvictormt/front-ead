@@ -57,7 +57,7 @@ export default function EditarCursoPage() {
   const courseId = params.id as string;
   const { success, error: showError } = useToast();
   const [price, setPrice] = useState<number>(0);
-  const [inputValue, setInputValue] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>(formatKwanza(0));
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
     'md:ml-42': isCollapsed,
@@ -100,7 +100,7 @@ export default function EditarCursoPage() {
   }, [courseId, showError]);
 
   useEffect(() => {
-    setInputValue(price > 0 ? formatKwanza(price) : '');
+    setInputValue(formatKwanza(price));
   }, [courseData]);
 
   const formatRating = (value: string) => {
@@ -272,8 +272,40 @@ export default function EditarCursoPage() {
     setIsLoading(true);
     courseData.price = price;
 
+    const cleanLesson = (lesson: any) => {
+      const cleanedLesson: any = {
+        ...lesson,
+      };
+
+      if (typeof cleanedLesson.id === 'string' && cleanedLesson.id.startsWith('lesson-')) {
+        delete cleanedLesson.id;
+      }
+
+      if (!cleanedLesson.pdfUrl) {
+        delete cleanedLesson.pdfUrl;
+      }
+
+      return cleanedLesson;
+    };
+
+    const cleanedData = {
+      ...courseData,
+      modules: courseData.modules.map((mod) => {
+        const cleanedModule: any = {
+          ...mod,
+          lessons: mod.lessons.map(cleanLesson),
+        };
+
+        if (typeof cleanedModule.id === 'string' && cleanedModule.id.startsWith('module-')) {
+          delete cleanedModule.id;
+        }
+
+        return cleanedModule;
+      }),
+    };
+
     try {
-      const response = await apiService.updateCourse(courseId, courseData);
+      const response = await apiService.updateCourse(courseId, cleanedData);
       if (response.success) {
         success('Curso atualizado com sucesso');
         router.push('/admin/cursos');

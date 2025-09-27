@@ -122,8 +122,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     localStorage.removeItem('sidebar-mobile-open');
-    localStorage.removeItem('sidebar-collapsed');
     localStorage.removeItem('access_token');
+    localStorage.removeItem('cart_items');
     localStorage.removeItem('user');
     apiService.clearToken();
     setAccessToken(null);
