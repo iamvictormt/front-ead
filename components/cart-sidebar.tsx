@@ -1,17 +1,17 @@
-'use client';
+"use client"
 
-import { useCart } from '@/contexts/cart-context';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, ShoppingBag, Trash2, CreditCard } from 'lucide-react';
-import Image from 'next/image';
-import { formatKwanza } from '@/lib/utils';
+import { useCart } from "@/contexts/cart-context"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { X, ShoppingBag, Trash2, CreditCard } from "lucide-react"
+import Image from "next/image"
+import { formatKwanza } from "@/lib/utils"
 
 export function CartSidebar() {
-  const { items, removeFromCart, clearCart, getTotalPrice, getTotalItems, isOpen, closeCart } = useCart();
+  const { items, removeFromCart, clearCart, getTotalPrice, getTotalItems, isOpen, closeCart } = useCart()
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <>
@@ -23,7 +23,7 @@ export function CartSidebar() {
         className={`
         fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl z-50
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+        ${isOpen ? "translate-x-0" : "translate-x-full"}
         flex flex-col
       `}
       >
@@ -71,7 +71,7 @@ export function CartSidebar() {
                   >
                     <div className="relative w-16 h-12 rounded-md overflow-hidden flex-shrink-0">
                       <Image
-                        src={item.thumbnailUrl || '/placeholder.svg'}
+                        src={item.thumbnailUrl || "/placeholder.svg"}
                         alt={item.title}
                         fill
                         className="object-cover"
@@ -80,7 +80,9 @@ export function CartSidebar() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm line-clamp-2 mb-1 dark:text-white">{item.title}</h4>
                       <p className="text-xs text-muted-foreground dark:text-gray-400 mb-2">{item.instructor.name}</p>
-                      <p className="font-semibold text-sm text-primary dark:text-blue-400">{formatKwanza(item.price)}</p>
+                      <p className="font-semibold text-sm text-primary dark:text-blue-400">
+                        {formatKwanza(item.price)}
+                      </p>
                     </div>
                     <Button
                       variant="ghost"
@@ -105,8 +107,29 @@ export function CartSidebar() {
               </div>
 
               <div className="space-y-2">
-                <Button className="w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white" size="lg">
-                  <CreditCard className="h-4 w-4 mr-2" />
+                <Button
+                  className="w-full dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
+                  size="lg"
+                  onClick={() => {
+                    // Verificar se usuário está logado
+                    const user = JSON.parse(localStorage.getItem("user") || "null")
+                    if (!user) {
+                      // Salvar carrinho e redirecionar para login
+                      localStorage.setItem(
+                        "pendingAction",
+                        JSON.stringify({
+                          type: "checkout",
+                          returnUrl: "/comprar-cursos",
+                        }),
+                      )
+                      window.location.href = "/login"
+                    } else {
+                      // Prosseguir com checkout
+                      console.log("Finalizar compra para usuário logado")
+                    }
+                  }}
+                >
+                  <CreditCard className="h-4 w-4 mr-1" />
                   Finalizar Compra
                 </Button>
                 <Button
@@ -122,5 +145,5 @@ export function CartSidebar() {
         )}
       </div>
     </>
-  );
+  )
 }

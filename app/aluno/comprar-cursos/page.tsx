@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, Star, Users, ShoppingCart, Loader2, Check, Gift } from 'lucide-react';
+import { Search, Star, Users, ShoppingCart, Loader2, Check, Gift, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import { apiService, type CourseAvailable } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
@@ -24,6 +24,7 @@ import { useSidebar } from '@/contexts/sidebar-context';
 import { formatKwanza } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import Link from 'next/link';
 
 export default function ComprarCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -257,43 +258,55 @@ export default function ComprarCursosPage() {
                             </div>
 
                             {/* Price and buy button */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
                               <div className="text-2xl font-bold text-primary dark:text-blue-400">
                                 {course.price === 0 ? (
-                                  <span className="text-green-600 dark:text-green-400 font-bold">Gratuito</span>
+                                  <p className="text-sm inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 font-semibold">
+                                    Grátis
+                                  </p>
                                 ) : (
                                   formatKwanza(course.price)
                                 )}
                               </div>
-                              <Button
-                                className={clsx(
-                                  'transition-all duration-200',
-                                  inCart
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : course.price === 0
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : 'bg-accent hover:bg-accent/90 text-accent-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white'
-                                )}
-                                onClick={() => handleAddToCart(course)}
-                                disabled={inCart}
-                              >
-                                {inCart ? (
-                                  <>
-                                    <Check className="h-4 w-4 mr-2" />
-                                    No Carrinho
-                                  </>
-                                ) : course.price === 0 ? (
-                                  <>
-                                    <Gift className="h-4 w-4 mr-2" />
-                                    Obter Grátis
-                                  </>
-                                ) : (
-                                  <>
-                                    <ShoppingCart className="h-4 w-4 mr-2" />
-                                    Comprar
-                                  </>
-                                )}
-                              </Button>
+
+                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                <Button
+                                  className={clsx(
+                                    'transition-all duration-200',
+                                    inCart
+                                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                                      : course.price === 0
+                                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                                      : 'bg-accent hover:bg-accent/90 text-accent-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white'
+                                  )}
+                                  onClick={() => handleAddToCart(course)}
+                                  disabled={inCart}
+                                >
+                                  {inCart ? (
+                                    <>
+                                      <Check className="h-4 w-4 mr-1" />
+                                      No Carrinho
+                                    </>
+                                  ) : course.price === 0 ? (
+                                    <>
+                                      <Gift className="h-4 w-4 mr-1" />
+                                      Obter Grátis
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ShoppingCart className="h-4 w-4 mr-1" />
+                                      Comprar
+                                    </>
+                                  )}
+                                </Button>
+
+                              <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
+                                <Button className="w-full transition-all duration-200 bg-[#DE2535] hover:bg-[#c41e2a] text-white">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Ver Mais
+                                </Button>
+                              </Link>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -363,12 +376,12 @@ export default function ComprarCursosPage() {
               >
                 {enrolling ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                     Matriculando...
                   </>
                 ) : (
                   <>
-                    <Check className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 mr-1" />
                     Confirmar Matrícula
                   </>
                 )}

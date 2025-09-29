@@ -30,6 +30,12 @@ export function MobileHeader({ onMenuToggle, title }: MobileHeaderProps) {
     if (title) return title;
 
     switch (pathname) {
+      case '/':
+        return 'Página Inicial';
+      case '/cursos-disponiveis':
+        return 'Cursos Disponíveis';
+      case `/detalhes-curso/${pathname.split('/').pop()}`:
+        return 'Detalhes do Curso';
       case '/aluno':
         return 'Dashboard';
       case '/aluno/meus-cursos':

@@ -137,8 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
+      router.push('/');
       handleLogout();
-      router.push('/login');
     }
   };
 

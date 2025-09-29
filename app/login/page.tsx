@@ -54,7 +54,14 @@ export default function LoginPage() {
         setTheme(originalTheme);
         localStorage.removeItem('originalTheme');
       }
-      router.push('/');
+
+      const pendingAction: any = JSON.parse(localStorage.getItem('pendingAction') || 'null');
+      if (pendingAction) {
+        router.push(pendingAction.returnUrl || '/');
+        localStorage.removeItem('pendingAction');
+      } else {
+        router.push('/');
+      }
       success('Login realizado com sucesso!', 'Bem-vindo');
     } else {
       showError(result.error || 'Erro ao fazer login. Tente novamente.');
@@ -134,12 +141,13 @@ export default function LoginPage() {
                       Lembrar de mim
                     </Label>
                   </div>
-                  <button
-                    type="button"
+
+                  <Link
+                    href="/esqueceu-senha"
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium text-left sm:text-right"
                   >
                     Esqueceu a senha?
-                  </button>
+                  </Link>
                 </div>
 
                 <Button

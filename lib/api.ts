@@ -271,11 +271,8 @@ class ApiService {
   }
 
   async logout(): Promise<ApiResponse> {
-    const response = await this.request('/auth/logout', {
-      method: 'POST',
-    });
     this.clearToken();
-    return response;
+    return { success: true, message: 'Logged out successfully' };
   }
 
   async getProfile(): Promise<ApiResponse<User>> {
@@ -332,6 +329,12 @@ class ApiService {
 
   async getCourse(id: string): Promise<ApiResponse<Course>> {
     return this.request<Course>(`/courses/${id}`, {
+      method: 'GET',
+    });
+  }
+
+  async getCourseToPurchase(id: string, userId: string): Promise<ApiResponse<Course>> {
+    return this.request<Course>(`/courses/${id}/purchase/${userId}`, {
       method: 'GET',
     });
   }
@@ -406,6 +409,27 @@ class ApiService {
 
     const queryString = searchParams.toString();
     const endpoint = `/courses/available${queryString ? `?${queryString}` : ''}`;
+
+    return this.request(endpoint);
+  }
+
+  async getActiveCourses(params?: {
+    search?: string;
+    category?: string;
+    priceRange?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{ courses: CourseAvailable[]; total: number; page: number; totalPages: number }>> {
+    const searchParams = new URLSearchParams();
+
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.priceRange) searchParams.append('priceRange', params.priceRange);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = `/courses/active${queryString ? `?${queryString}` : ''}`;
 
     return this.request(endpoint);
   }

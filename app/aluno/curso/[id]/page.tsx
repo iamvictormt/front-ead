@@ -128,7 +128,7 @@ const CommentItem = ({
                           onClick={() => onEditToggle(comment.id, comment.content)}
                           className="cursor-pointer"
                         >
-                          <Edit3 className="h-4 w-4 mr-2" />
+                          <Edit3 className="h-4 w-4 mr-1" />
                           Editar
                         </DropdownMenuItem>
                       )}
@@ -137,7 +137,7 @@ const CommentItem = ({
                           onClick={() => onDeleteComment(comment.id)}
                           className="text-red-500 focus:text-red-500 cursor-pointer"
                         >
-                          <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                          <Trash2 className="h-4 w-4 mr-1 text-red-500" />
                           Excluir
                         </DropdownMenuItem>
                       )}
@@ -818,7 +818,7 @@ export default function CursoPage() {
                           </div>
                         </div>
 
-                        <div className="max-h-96 lg:max-h-[600px] overflow-y-auto bg-white dark:bg-gray-800">
+                        <div className="max-h-[79vh] overflow-y-auto bg-white dark:bg-gray-800">
                           <div className="p-4 border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                             <h4 className="font-semibold text-gray-900 dark:text-white">Conteúdo do Curso</h4>
                           </div>
