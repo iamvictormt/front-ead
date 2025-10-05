@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getVideoEmbedUrl } from '@/lib/utils';
 
 export default function CursoPublicoPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -149,26 +150,6 @@ export default function CursoPublicoPage() {
     localStorage.setItem('pendingAction', JSON.stringify(actionData));
 
     router.push('/login');
-  };
-
-  const getVideoEmbedUrl = (videoUrl: string) => {
-    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-      const videoId = videoUrl.includes('youtu.be')
-        ? videoUrl.split('youtu.be/')[1]?.split('?')[0]
-        : videoUrl.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-
-    if (videoUrl.includes('vimeo.com')) {
-      if (videoUrl.includes('player.vimeo.com/video')) {
-        return videoUrl;
-      }
-
-      const parts = videoUrl.split('vimeo.com/')[1];
-      return `https://player.vimeo.com/video/${parts}`;
-    }
-
-    return videoUrl;
   };
 
   if (loading) {

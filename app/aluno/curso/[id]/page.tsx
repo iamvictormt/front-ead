@@ -46,7 +46,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatKwanza } from '@/lib/utils';
+import { formatKwanza, getVideoEmbedUrl } from '@/lib/utils';
 
 const CommentItem = ({
   comment,
@@ -380,26 +380,6 @@ export default function CursoPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getVideoEmbedUrl = (videoUrl: string) => {
-    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-      const videoId = videoUrl.includes('youtu.be')
-        ? videoUrl.split('youtu.be/')[1]?.split('?')[0]
-        : videoUrl.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-
-    if (videoUrl.includes('vimeo.com')) {
-      if (videoUrl.includes('player.vimeo.com/video')) {
-        return videoUrl;
-      }
-
-      const parts = videoUrl.split('vimeo.com/')[1];
-      return `https://player.vimeo.com/video/${parts}`;
-    }
-
-    return videoUrl;
   };
 
   const navigateLesson = (direction: 'prev' | 'next') => {
@@ -740,7 +720,7 @@ export default function CursoPage() {
                                 allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                                 referrerPolicy="strict-origin-when-cross-origin"
                                 className="w-full h-full"
-                                title="Optimizing Video Thumbnails"
+                                title={selectedLesson.title}
                               />
                             ) : (
                               <video

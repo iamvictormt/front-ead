@@ -17,3 +17,23 @@ export function formatKwanza(value: number | string): string {
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+export function getVideoEmbedUrl(videoUrl: string): string {
+  if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+    const videoId = videoUrl.includes('youtu.be')
+      ? videoUrl.split('youtu.be/')[1]?.split('?')[0]
+      : videoUrl.split('v=')[1]?.split('&')[0];
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+
+  if (videoUrl.includes('vimeo.com')) {
+    if (videoUrl.includes('player.vimeo.com/video')) {
+      return videoUrl;
+    }
+
+    const parts = videoUrl.split('vimeo.com/')[1];
+    return `https://player.vimeo.com/video/${parts}`;
+  }
+
+  return videoUrl;
+}

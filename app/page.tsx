@@ -1,124 +1,124 @@
-'use client';
+"use client"
 
-import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
-import { useSidebar } from '@/contexts/sidebar-context';
-import { Button } from '@/components/ui/button';
-import { Users, Star, ArrowRight, Quote, UserPlus, BookOpen, GraduationCap, Award, MessageCircle } from 'lucide-react';
-import clsx from 'clsx';
-import { apiService, type CourseAvailable } from '@/lib/api';
-import Link from 'next/link';
-import { formatKwanza } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
+import { useSidebar } from "@/contexts/sidebar-context"
+import { Button } from "@/components/ui/button"
+import { Users, Star, ArrowRight, Quote, UserPlus, BookOpen, GraduationCap, Award } from "lucide-react"
+import clsx from "clsx"
+import { apiService, type CourseAvailable } from "@/lib/api"
+import Link from "next/link"
+import { formatKwanza } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 export default function HomePage() {
-  const { isAuthenticated, user, isLoading } = useAuth();
-  const { isCollapsed, setIsCollapsed } = useSidebar();
-  const router = useRouter();
-  const [featuredCourses, setFeaturedCourses] = useState<CourseAvailable[]>([]);
-  const [loadingCourses, setLoadingCourses] = useState(true);
-  const [currentFormation, setCurrentFormation] = useState(0);
-  const [faces, setFaces] = useState<string[]>([]);
+  const { isAuthenticated, user, isLoading } = useAuth()
+  const { isCollapsed, setIsCollapsed } = useSidebar()
+  const router = useRouter()
+  const [featuredCourses, setFeaturedCourses] = useState<CourseAvailable[]>([])
+  const [loadingCourses, setLoadingCourses] = useState(true)
+  const [currentFormation, setCurrentFormation] = useState(0)
+  const [faces, setFaces] = useState<string[]>([])
 
   const formations = [
-    'Marketing Digital',
-    'Inteligência Artificial',
-    'Branding e Posicionamento',
-    'Negócios Online e Empreendedorismo',
-  ];
+    "Marketing Digital",
+    "Inteligência Artificial",
+    "Branding e Posicionamento",
+    "Negócios Online e Empreendedorismo",
+  ]
 
-  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
-    'md:ml-42': isCollapsed,
-    'md:ml-80': !isCollapsed,
-    'pt-14 md:pt-0': true,
-  });
+  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
+    "md:ml-42": isCollapsed,
+    "md:ml-80": !isCollapsed,
+    "pt-14 md:pt-0": true,
+  })
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentFormation((prev) => (prev + 1) % formations.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+      setCurrentFormation((prev) => (prev + 1) % formations.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (user.role === 'ADMIN') {
-        router.push('/admin');
-      } else if (user.role === 'STUDENT') {
-        router.push('/aluno');
+      if (user.role === "ADMIN") {
+        router.push("/admin")
+      } else if (user.role === "STUDENT") {
+        router.push("/aluno")
       }
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, user, isLoading, router])
 
   useEffect(() => {
     setFaces([
-      'https://images.unsplash.com/photo-1672675225389-4d7b6f231f5b?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'https://images.unsplash.com/photo-1656848222673-e07026bb242e?q=80&w=737&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'https://images.unsplash.com/photo-1610903866883-c280999dcc0e?q=80&w=789&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'https://images.unsplash.com/photo-1678282955936-426bbe7a9693?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      'https://images.unsplash.com/photo-1678282955808-de92256dbd59?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80',
-    ]);
-  }, []);
+      "https://images.unsplash.com/photo-1672675225389-4d7b6f231f5b?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1656848222673-e07026bb242e?q=80&w=737&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1610903866883-c280999dcc0e?q=80&w=789&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1678282955936-426bbe7a9693?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1678282955808-de92256dbd59?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80",
+    ])
+  }, [])
 
   const testimonials = [
     {
       id: 1,
-      name: 'Ana Rodrigues',
-      course: 'Marketing Digital Avançado',
+      name: "Ana Rodrigues",
+      course: "Marketing Digital Avançado",
       rating: 5,
       comment:
-        'Os cursos do IMDN transformaram minha carreira. Consegui aplicar os conhecimentos imediatamente no meu trabalho e já vi resultados incríveis!',
+        "Os cursos do IMDN transformaram minha carreira. Consegui aplicar os conhecimentos imediatamente no meu trabalho e já vi resultados incríveis!",
       avatar:
-        'https://images.unsplash.com/photo-1551524997-bccf2c928f5f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80',
+        "https://images.unsplash.com/photo-1551524997-bccf2c928f5f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80",
     },
     {
       id: 2,
-      name: 'Carlos Mendes',
-      course: 'Desenvolvimento Web Completo',
+      name: "Carlos Mendes",
+      course: "Desenvolvimento Web Completo",
       rating: 5,
       comment:
-        'Excelente plataforma! Os professores são muito qualificados e o conteúdo é atualizado. Recomendo para quem quer se destacar no mercado.',
+        "Excelente plataforma! Os professores são muito qualificados e o conteúdo é atualizado. Recomendo para quem quer se destacar no mercado.",
       avatar:
-        'https://images.unsplash.com/photo-1688991021464-106ab5630eb7?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80',
+        "https://images.unsplash.com/photo-1688991021464-106ab5630eb7?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80",
     },
     {
       id: 3,
-      name: 'Beatriz Santos',
-      course: 'Design Gráfico Profissional',
+      name: "Beatriz Santos",
+      course: "Design Gráfico Profissional",
       rating: 5,
       comment:
-        'Aprendi muito mais do que esperava. A metodologia é clara e os projetos práticos me ajudaram a construir um portfólio profissional.',
+        "Aprendi muito mais do que esperava. A metodologia é clara e os projetos práticos me ajudaram a construir um portfólio profissional.",
       avatar:
-        'https://images.unsplash.com/photo-1551524267-c0baf940832c?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80',
+        "https://images.unsplash.com/photo-1551524267-c0baf940832c?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?height=80&width=80",
     },
-  ];
+  ]
 
   useEffect(() => {
     const loadFeaturedCourses = async () => {
       try {
-        setLoadingCourses(true);
-        const response = await apiService.getActiveCourses();
+        setLoadingCourses(true)
+        const response = await apiService.getActiveCourses()
         if (response.success && response.data && response.data.courses.length > 0) {
-          setFeaturedCourses(response.data.courses.slice(0, 6));
+          setFeaturedCourses(response.data.courses.slice(0, 6))
         }
       } catch (error) {
-        console.log(error);
+        console.log(error)
       } finally {
-        setLoadingCourses(false);
+        setLoadingCourses(false)
       }
-    };
+    }
 
-    loadFeaturedCourses();
-  }, []);
+    loadFeaturedCourses()
+  }, [])
 
   const scrollToCourses = () => {
-    const coursesSection = document.getElementById('cursos-destaque');
+    const coursesSection = document.getElementById("cursos-destaque")
     if (coursesSection) {
-      coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      coursesSection.scrollIntoView({ behavior: "smooth", block: "start" })
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -128,11 +128,11 @@ export default function HomePage() {
           <span className="text-gray-900 dark:text-gray-100">Carregando...</span>
         </div>
       </div>
-    );
+    )
   }
 
   if (isAuthenticated && user) {
-    return null;
+    return null
   }
 
   return (
@@ -148,7 +148,7 @@ export default function HomePage() {
                 <div className="space-y-6">
                   {/* Título com texto animado */}
                   <div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900 dark:text-white">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 dark:text-white">
                       Formação em
                       <br />
                       <span className="relative inline-block">
@@ -156,7 +156,7 @@ export default function HomePage() {
                           key={currentFormation}
                           className="text-[#DE2535] dark:text-red-400 animate-fade-in"
                           style={{
-                            animation: 'fadeIn 0.5s ease-in-out',
+                            animation: "fadeIn 0.5s ease-in-out",
                           }}
                         >
                           {formations[currentFormation]}
@@ -178,7 +178,7 @@ export default function HomePage() {
                       {faces.map((url, idx) => (
                         <img
                           key={idx}
-                          src={url}
+                          src={url || "/placeholder.svg"}
                           alt="Aluno"
                           className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 object-cover shadow-md"
                         />
@@ -203,19 +203,16 @@ export default function HomePage() {
                 </div>
 
                 {/* Coluna Direita - Imagem/Vídeo */}
-                <div className="relative hidden lg:block">
-                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
-                    <img
-                      src="/placeholder.svg?height=600&width=800"
-                      alt="Estudantes aprendendo"
-                      className="w-full h-auto"
+                <div className="relative">
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 aspect-video">
+                    <iframe
+                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        className="w-full h-full"
+                        title="Optimizing Video Thumbnails"
                     />
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="w-20 h-20 bg-[#DE2535] hover:bg-red-700 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-lg">
-                        <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-1"></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -251,7 +248,7 @@ export default function HomePage() {
                           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                             <div className="relative h-48 bg-gray-100 dark:bg-gray-700">
                               <img
-                                src={course.thumbnailUrl || '/placeholder.svg'}
+                                src={course.thumbnailUrl || "/placeholder.svg"}
                                 alt={course.title}
                                 className="w-full h-full object-cover"
                               />
@@ -275,7 +272,7 @@ export default function HomePage() {
                               </p>
 
                               <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                                Instrutor:{' '}
+                                Instrutor:{" "}
                                 <span className="font-medium text-gray-900 dark:text-white">{course.instructor}</span>
                               </div>
 
@@ -312,7 +309,7 @@ export default function HomePage() {
                     <Button
                       size="lg"
                       className="bg-[#121F3F] hover:bg-[#0d1629] dark:bg-gray-700 dark:hover:bg-gray-700 text-white p-4"
-                      onClick={() => router.push('/cursos-disponiveis')}
+                      onClick={() => router.push("/cursos-disponiveis")}
                     >
                       Ver Todos os Cursos
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -416,7 +413,7 @@ export default function HomePage() {
                     >
                       <div className="flex items-center gap-4 mb-4">
                         <img
-                          src={testimonial.avatar || '/placeholder.svg'}
+                          src={testimonial.avatar || "/placeholder.svg"}
                           alt={testimonial.name}
                           className="w-12 h-12 rounded-full object-cover"
                         />
@@ -454,7 +451,7 @@ export default function HomePage() {
                       <Button
                         size="lg"
                         className="bg-[#DE2535] hover:bg-[#c41e2a] text-white p-4"
-                        onClick={() => router.push('/register')}
+                        onClick={() => router.push("/register")}
                       >
                         Criar Conta Gratuita
                       </Button>
@@ -462,7 +459,7 @@ export default function HomePage() {
                       <Button
                         size="lg"
                         className="bg-[#121F3F] hover:bg-[#0d1629] dark:bg-gray-700 dark:hover:bg-gray-700 text-white p-4"
-                        onClick={() => router.push('/cursos-disponiveis')}
+                        onClick={() => router.push("/cursos-disponiveis")}
                       >
                         Explorar Cursos
                       </Button>
@@ -488,5 +485,5 @@ export default function HomePage() {
         </svg>
       </a>
     </div>
-  );
+  )
 }
