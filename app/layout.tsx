@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-AO" dir="ltr" suppressHydrationWarning>
       <head>
         <style>{`
 html {
@@ -27,7 +27,7 @@ html {
 
         <meta name="apple-mobile-web-app-title" content="IMDN" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <ToastProvider>

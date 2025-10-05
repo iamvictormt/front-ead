@@ -32,7 +32,7 @@ export default function CursoPublicoPage() {
   const router = useRouter();
   const params = useParams();
   const courseId = params.id as string;
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { addToCart } = useCart();
 
   const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
@@ -45,7 +45,7 @@ export default function CursoPublicoPage() {
     if (courseId) {
       loadCourseDetails(courseId);
     }
-  }, [courseId]);
+  }, [isLoading === false]);
 
   const loadCourseDetails = async (courseId: string) => {
     try {
@@ -55,7 +55,7 @@ export default function CursoPublicoPage() {
         setCourse(response.data);
       } else {
         showError(response.error || 'Erro ao carregar detalhes do curso');
-        // router.push("/")
+        router.push('/aluno');
       }
     } catch (error) {
       showError('Erro ao carregar detalhes do curso');
@@ -143,7 +143,7 @@ export default function CursoPublicoPage() {
     const actionData = {
       type: pendingAction === 'enrollFree' ? 'enroll' : pendingAction === 'buyNow' ? 'checkout' : 'addToCart',
       courseId: course.id.toString(),
-      returnUrl: `/detalhes-curso/${course.id}`,
+      returnUrl: `/curso/${course.id}`,
     };
 
     localStorage.setItem('pendingAction', JSON.stringify(actionData));
@@ -151,15 +151,32 @@ export default function CursoPublicoPage() {
     router.push('/login');
   };
 
+  const getVideoEmbedUrl = (videoUrl: string) => {
+    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+      const videoId = videoUrl.includes('youtu.be')
+        ? videoUrl.split('youtu.be/')[1]?.split('?')[0]
+        : videoUrl.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    if (videoUrl.includes('vimeo.com')) {
+      if (videoUrl.includes('player.vimeo.com/video')) {
+        return videoUrl;
+      }
+
+      const parts = videoUrl.split('vimeo.com/')[1];
+      return `https://player.vimeo.com/video/${parts}`;
+    }
+
+    return videoUrl;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <CollapsibleSidebar onToggle={setIsCollapsed} />
-        <div className={`${contentMargin} flex items-center justify-center`}>
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-6 h-6 animate-spin" />
-            <span>Carregando curso...</span>
-          </div>
+      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-white" />
+          <span className="text-foreground dark:text-white">Carregando curso...</span>
         </div>
       </div>
     );
@@ -172,9 +189,9 @@ export default function CursoPublicoPage() {
         <div className={`${contentMargin} flex items-center justify-center`}>
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Curso não encontrado</p>
-            <Button onClick={() => router.push('/')}>
+            <Button onClick={() => router.push('/aluno/comprar-cursos')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              Voltar aos Cursos
             </Button>
           </div>
         </div>
@@ -184,6 +201,9 @@ export default function CursoPublicoPage() {
 
   const totalLessons = course.modules?.reduce((acc, module: Module) => acc + (module.lessons?.length || 0), 0) || 0;
   const totalModules = course.modules.length || 0;
+
+  const isPaidCourse = course.price > 0;
+  const maxVisibleModules = isPaidCourse && !user ? 2 : course.modules.length;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -232,11 +252,11 @@ export default function CursoPublicoPage() {
             <div className="mx-auto space-y-6">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-6 border border-gray-200 dark:border-gray-700">
                 <div className="grid md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
+                  <div className="md:col-span-1 flex items-center justify-center">
                     <img
                       src={course.thumbnailUrl || '/placeholder.svg?height=300&width=400&query=course'}
                       alt={course.title}
-                      className="w-full h-48 md:h-full object-cover rounded-lg"
+                      className="w-full h-48 md:h-64 object-cover object-center rounded-lg"
                     />
                   </div>
                   <div className="md:col-span-2 space-y-4">
@@ -335,6 +355,28 @@ export default function CursoPublicoPage() {
                 </div>
               </div>
 
+              {(course as any).previewVideoUrl && (
+                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+                      Prévia do Curso
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-video w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
+                      <iframe
+                        src={getVideoEmbedUrl((course as any).previewVideoUrl)}
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        className="w-full h-full"
+                        title="Optimizing Video Thumbnails"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
@@ -342,64 +384,157 @@ export default function CursoPublicoPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {course.modules && course.modules.length > 0 ? (
-                      course.modules.map((module: any, moduleIndex) => (
-                        <div
-                          key={module.id}
-                          className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
-                        >
-                          <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3">
-                            <h5 className="font-semibold text-gray-900 dark:text-white">
-                              Módulo {moduleIndex + 1}: {module.title}
-                            </h5>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {module.lessons?.length || 0} aulas
-                            </p>
+                  {course.price > 0 ? (
+                    <div className="space-y-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white dark:via-gray-800/50 dark:to-gray-800 z-10 flex items-center justify-center">
+                          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md mx-4 border-2 border-[#DE2535]">
+                            <div className="text-center">
+                              <div className="inline-flex items-center justify-center w-16 h-16 bg-[#DE2535]/10 rounded-full mb-4">
+                                <Lock className="w-8 h-8 text-[#DE2535]" />
+                              </div>
+                              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Conteúdo Bloqueado
+                              </h3>
+                              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                Adquira este curso para ter acesso completo a {totalModules} módulos com {totalLessons}{' '}
+                                aulas exclusivas.
+                              </p>
+                              <div className="flex flex-col gap-3">
+                                <Button
+                                  onClick={handleBuyNow}
+                                  className="w-full bg-[#DE2535] hover:bg-[#DE2535]/90"
+                                  size="lg"
+                                >
+                                  <ShoppingCart className="w-5 h-5 mr-2" />
+                                  Comprar Agora
+                                </Button>
+                                <Button
+                                  onClick={handleAddToCart}
+                                  variant="outline"
+                                  className="w-full bg-transparent"
+                                  size="lg"
+                                >
+                                  Adicionar ao Carrinho
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {module.lessons?.map((lesson: Lesson, lessonIndex: number) => (
-                              <div
-                                key={lesson.id}
-                                className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                              >
-                                <div className="flex items-center gap-3 flex-1">
-                                  <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white break-words sm:truncate">
-                                      Aula {lessonIndex + 1}: {lesson.title}
-                                    </p>
+                        </div>
+
+                        <div className="blur-sm pointer-events-none select-none space-y-4 opacity-50">
+                          {course.modules?.slice(0, 3).map((module: any, moduleIndex) => (
+                            <div
+                              key={module.id}
+                              className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                            >
+                              <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3">
+                                <h5 className="font-semibold text-gray-900 dark:text-white">
+                                  Módulo {moduleIndex + 1}: {module.title}
+                                </h5>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  {module.lessons?.length || 0} aulas
+                                </p>
+                              </div>
+                              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {module.lessons?.slice(0, 3).map((lesson: Lesson, lessonIndex: number) => (
+                                  <div key={lesson.id} className="px-4 py-3 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <Lock className="w-4 h-4 text-gray-400" />
+                                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        Aula {lessonIndex + 1}: {lesson.title}
+                                      </p>
+                                    </div>
                                   </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                          O que você vai aprender:
+                        </h4>
+                        <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+                          <li className="flex items-start gap-2">
+                            <span>Acesso completo a {totalModules} módulos estruturados</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>{totalLessons} aulas em vídeo de alta qualidade</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>Certificado de conclusão ao finalizar o curso</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span>Acesso vitalício ao conteúdo</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {course.modules && course.modules.length > 0 ? (
+                        <>
+                          {course.modules.map((module: any, moduleIndex) => (
+                            <div
+                              key={module.id}
+                              className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                            >
+                              <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3">
+                                <h5 className="font-semibold text-gray-900 dark:text-white">
+                                  Módulo {moduleIndex + 1}: {module.title}
+                                </h5>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  {module.lessons?.length || 0} aulas
+                                </p>
+                              </div>
+                              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {module.lessons?.map((lesson: Lesson, lessonIndex: number) => (
+                                  <div
+                                    key={lesson.id}
+                                    className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 flex-1">
+                                      <PlayCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white break-words sm:truncate">
+                                          Aula {lessonIndex + 1}: {lesson.title}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+
+                          {!user && (
+                            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                                    Faça login para acessar o conteúdo completo
+                                  </h4>
+                                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                                    Matricule-se neste curso gratuito para ter acesso a todas as aulas e certificado.
+                                  </p>
+                                  <Button size="sm" onClick={() => router.push('/login')}>
+                                    Fazer Login
+                                  </Button>
                                 </div>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-12">
+                          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">Nenhum módulo disponível.</p>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-12">
-                        <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">Nenhum módulo disponível.</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {!user && (
-                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                            Faça login para acessar o conteúdo completo
-                          </h4>
-                          <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                            Matricule-se neste curso para ter acesso a todas as aulas, materiais e certificado.
-                          </p>
-                          <Button size="sm" onClick={() => router.push('/login')}>
-                            Fazer Login
-                          </Button>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
                 </CardContent>

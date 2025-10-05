@@ -7,7 +7,7 @@ import { apiService, type User, type LoginRequest } from '@/lib/api';
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; role: string; error?: string }>;
   logout: () => void;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -57,7 +57,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; role: string; error?: string }> => {
     setIsLoading(true);
 
     try {
@@ -79,11 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
 
         setIsLoading(false);
-        return { success: true };
+        return { success: true, role: user?.role || '' };
       } else {
         setIsLoading(false);
         return {
           success: false,
+          role: '',
           error: response.error || 'Erro ao fazer login. Verifique suas credenciais.',
         };
       }
@@ -91,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       return {
         success: false,
+        role: '',
         error: 'Erro de conexão. Tente novamente.',
       };
     }

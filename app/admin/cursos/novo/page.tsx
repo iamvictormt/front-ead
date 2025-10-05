@@ -45,6 +45,7 @@ interface CourseData {
   category: string;
   rating: number;
   studentsCount: number;
+  previewVideoUrl: string;
   modules: Module[];
 }
 
@@ -81,6 +82,7 @@ export default function NovoCursoPage() {
     category: '',
     rating: 0,
     studentsCount: 0,
+    previewVideoUrl: '',
     modules: [],
   });
 
@@ -211,6 +213,22 @@ export default function NovoCursoPage() {
     setCourseData((prev) => ({ ...prev, rating: numericValue }));
   };
 
+  const handleStudentsCountChange = (value: string) => {
+    let newValue = value.replace(/\D/g, '');
+
+    newValue = newValue.replace(/^0+/, '');
+
+    if (newValue === '') {
+      setCourseData((prev) => ({ ...prev, studentsCount: 0 }));
+      return;
+    }
+
+    let numericValue = parseInt(newValue, 10);
+    if (numericValue > 100000) numericValue = 100000;
+
+    setCourseData((prev) => ({ ...prev, studentsCount: numericValue }));
+  };
+
   const addModule = () => {
     const newModule: Module = {
       id: `module-${Date.now()}`,
@@ -332,6 +350,7 @@ export default function NovoCursoPage() {
         category: courseData.category,
         rating: courseData.rating,
         studentsCount: courseData.studentsCount,
+        previewVideoUrl: courseData.previewVideoUrl,
         modules: courseData.modules.map((module) => ({
           title: module.title,
           order: module.order,
@@ -356,6 +375,7 @@ export default function NovoCursoPage() {
           : response.error || 'Erro ao salvar curso';
 
         showError(messages);
+        setIsLoading(false);
       }
     } catch (error) {
       showError('Erro ao salvar curso');
@@ -524,6 +544,38 @@ export default function NovoCursoPage() {
                             type="text"
                             onChange={handleRatingChange}
                             placeholder="4.5"
+                            className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studentsCount" className="text-sm font-medium text-gray-900 dark:text-white">
+                            Quantidade de Alunos Cadastrados
+                          </Label>
+                          <Input
+                            id="studentsCount"
+                            type="text"
+                            value={courseData.studentsCount}
+                            placeholder="0"
+                            className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) => handleStudentsCountChange(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="previewVideoUrl"
+                            className="text-sm font-medium text-gray-900 dark:text-white"
+                          >
+                            Link da Preview do Vídeo
+                          </Label>
+                          <Input
+                            id="previewVideoUrl"
+                            type="url"
+                            value={courseData.previewVideoUrl}
+                            onChange={(e) => setCourseData((prev) => ({ ...prev, previewVideoUrl: e.target.value }))}
+                            placeholder="https://vimeo.com/.."
                             className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                           />
                         </div>

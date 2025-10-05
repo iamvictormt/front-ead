@@ -176,6 +176,7 @@ export interface CourseDTO {
   rating: number;
   studentsCount: number;
   modules: ModuleDTO[];
+  previewVideoUrl?: string;
 }
 
 class ApiService {

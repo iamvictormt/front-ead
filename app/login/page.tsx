@@ -23,7 +23,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, user } = useAuth();
   const [loginError, setLoginError] = useState('');
   const { success, error: showError } = useToast();
 
@@ -57,10 +57,14 @@ export default function LoginPage() {
 
       const pendingAction: any = JSON.parse(localStorage.getItem('pendingAction') || 'null');
       if (pendingAction) {
-        router.push(pendingAction.returnUrl || '/');
+        router.push(`detalhes-curso/${pendingAction.courseId}` || '/');
         localStorage.removeItem('pendingAction');
       } else {
-        router.push('/');
+        if (result.role === 'STUDENT') {
+          router.push('/aluno');
+        } else {
+          router.push('/admin');
+        }
       }
       success('Login realizado com sucesso!', 'Bem-vindo');
     } else {
