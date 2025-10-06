@@ -40,7 +40,7 @@ interface Course {
   price: number;
 }
 
-export default function ManageStudents() {
+export default function ManageStudentsPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const [usersData, setUsersData] = useState<UsersResponse>({

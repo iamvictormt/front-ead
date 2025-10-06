@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Save, GripVertical, Loader2 } from 'lucide-react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
@@ -49,11 +49,10 @@ interface CourseData {
   modules: Module[];
 }
 
-export default function EditarCursoPage() {
+export default function EditCoursePage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCourse, setIsLoadingCourse] = useState(true);
-  const router = useRouter();
   const params = useParams();
   const courseId = params.id as string;
   const { success, error: showError } = useToast();

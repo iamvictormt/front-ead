@@ -67,6 +67,7 @@ interface Course {
   };
   rating: number;
   studentsCount: number;
+  previewVideoUrl?: string;
 }
 
 interface CourseAvailable {

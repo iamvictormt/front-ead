@@ -19,7 +19,7 @@ import clsx from 'clsx';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import { formatKwanza } from '@/lib/utils';
 
-export default function AdminCursosPage() {
+export default function AdminCoursesPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
   const [courses, setCourses] = useState<CourseAvailable[]>([]);

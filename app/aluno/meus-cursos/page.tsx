@@ -15,7 +15,7 @@ import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
 import { useRouter } from 'next/navigation';
 
-export default function MeusCursosPage() {
+export default function MyCoursesPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');

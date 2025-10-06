@@ -10,7 +10,7 @@ import { apiService, type Course, type DashboardStats, type RecentActivity } fro
 import { useToast } from "@/contexts/toast-context"
 import Link from "next/link"
 
-export default function AlunoDashboard() {
+export default function StudentDashboard() {
   const { isCollapsed, setIsCollapsed } = useSidebar()
   const { user } = useAuth()
 

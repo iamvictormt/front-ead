@@ -275,7 +275,7 @@ const CommentItem = ({
   );
 };
 
-export default function CursoPage() {
+export default function CoursePage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [selectedCourse, setSelectedCourse] = useState<MyCourse | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<any | null>(null);

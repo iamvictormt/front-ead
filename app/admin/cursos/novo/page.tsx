@@ -49,7 +49,7 @@ interface CourseData {
   modules: Module[];
 }
 
-export default function NovoCursoPage() {
+export default function NewCoursePage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();

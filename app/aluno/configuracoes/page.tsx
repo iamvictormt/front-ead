@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, Bell, Shield, Palette, Save } from 'lucide-react'
 
-export default function ConfiguracoesAlunoPage() {
+export default function ConfigStudentPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const { user } = useAuth()
 

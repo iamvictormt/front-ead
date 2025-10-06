@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
 
-export default function ComprarCursosPage() {
+export default function BuyCoursesPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
   const [courses, setCourses] = useState<CourseAvailable[]>([]);

@@ -336,7 +336,7 @@ export default function CursoPublicoPage() {
                 </div>
               </div>
 
-              {(course as any).previewVideoUrl && (
+              {course?.previewVideoUrl && (
                 <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <CardHeader>
                     <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
@@ -346,12 +346,12 @@ export default function CursoPublicoPage() {
                   <CardContent>
                     <div className="aspect-video w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
                       <iframe
-                        src={getVideoEmbedUrl((course as any).previewVideoUrl)}
+                        src={getVideoEmbedUrl(course.previewVideoUrl)}
                         frameBorder="0"
                         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
                         className="w-full h-full"
-                        title="Optimizing Video Thumbnails"
+                        title={course.title}
                       />
                     </div>
                   </CardContent>

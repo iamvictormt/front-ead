@@ -19,7 +19,7 @@ import { useToast } from '@/contexts/toast-context';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
 
-export default function ConfiguracoesAdminPage() {
+export default function ConfigAdminPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user } = useAuth();
   const { success, error: showError } = useToast();
