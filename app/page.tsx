@@ -451,7 +451,7 @@ export default function HomePage() {
                       <Button
                         size="lg"
                         className="bg-[#DE2535] hover:bg-[#c41e2a] text-white p-4"
-                        onClick={() => router.push('/register')}
+                        onClick={() => router.push('/registrar')}
                       >
                         Criar Conta Gratuita
                       </Button>

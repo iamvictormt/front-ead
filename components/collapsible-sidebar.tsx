@@ -318,7 +318,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                   {!isCollapsed ? "Faça login para acessar mais recursos" : ""}
                 </p>
                 <Button
-                  onClick={() => handleNavigation("/register")}
+                  onClick={() => handleNavigation("/registrar")}
                   className="w-full bg-[#DE2535] hover:bg-[#c41e2a] text-white text-sm mb-2"
                   size="sm"
                 >
@@ -481,7 +481,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                   Fazer Login
                 </Button>
                 <Button
-                  onClick={() => handleNavigation("/register")}
+                  onClick={() => handleNavigation("/registrar")}
                   className="w-full bg-[#DE2535] hover:bg-[#c41e2a] text-white text-sm"
                   size="sm"
                 >
