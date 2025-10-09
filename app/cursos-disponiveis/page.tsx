@@ -47,10 +47,6 @@ export default function ComprarCursosPage() {
 
   useEffect(() => {
     loadCoursesAvailable();
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -136,7 +132,7 @@ export default function ComprarCursosPage() {
     router.push('/login');
   };
 
-  if (loading && isLoading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
         <div className="flex items-center gap-2">
@@ -295,7 +291,7 @@ export default function ComprarCursosPage() {
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
                                     : course.price === 0
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : 'bg-accent hover:bg-accent/90 text-accent-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white'
+                                    : 'bg-[#DE2535] hover:bg-[#c41e2a] text-accent-foreground text-white'
                                 )}
                                 onClick={() => handleAddToCart(course)}
                                 disabled={inCart && user !== null}
@@ -320,7 +316,7 @@ export default function ComprarCursosPage() {
 
                               {/* Botão de visualizar */}
                               <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
-                                <Button className="w-full transition-all duration-200 bg-[#DE2535] hover:bg-[#c41e2a] text-white">
+                                <Button className="w-full transition-all duration-200 dark:text-black">
                                   <Eye className="h-4 w-4 mr-1" />
                                   Ver Mais
                                 </Button>

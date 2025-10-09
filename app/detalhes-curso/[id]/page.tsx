@@ -313,7 +313,7 @@ export default function CursoPublicoPage() {
                           <>
                             <Button
                               onClick={handleBuyNow}
-                              className="flex-1 bg-[#DE2535] hover:bg-[#DE2535]/90 p-2"
+                              className="flex-1 bg-[#DE2535] hover:bg-[#DE2535]/90 p-2 text-white"
                               size="lg"
                             >
                               <ShoppingCart className="w-5 h-5 mr-2" />
@@ -384,7 +384,7 @@ export default function CursoPublicoPage() {
                               <div className="flex flex-col gap-3">
                                 <Button
                                   onClick={handleBuyNow}
-                                  className="w-full bg-[#DE2535] hover:bg-[#DE2535]/90"
+                                  className="w-full bg-[#DE2535] hover:bg-[#DE2535]/90 text-white"
                                   size="lg"
                                 >
                                   <ShoppingCart className="w-5 h-5 mr-2" />
