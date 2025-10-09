@@ -320,7 +320,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 <Button
                   onClick={() => handleNavigation("/registrar")}
                   className="w-full bg-[#DE2535] hover:bg-[#c41e2a] text-white text-sm mb-2"
-                  size="sm"
+                  size="lg"
                 >
                   {!isCollapsed ? (
                     <>
@@ -335,7 +335,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 <Button
                   onClick={() => handleNavigation("/login")}
                   className="w-full bg-[#121F3F] hover:bg-[#0d1629] dark:bg-gray-700 text-white dark:text-white text-sm"
-                  size="sm"
+                  size="lg"
                 >
                   {!isCollapsed ? (
                     <>
@@ -475,7 +475,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 <Button
                   onClick={() => handleNavigation("/login")}
                   className="w-full bg-[#121F3F] hover:bg-[#0d1629] dark:bg-gray-700 text-white dark:text-white text-sm mb-2"
-                  size="sm"
+                  size="lg"
                 >
                   <LogIn className="h-5 w-5 flex-shrink-0 text-white" />
                   Fazer Login
@@ -483,7 +483,7 @@ export function CollapsibleSidebar({ className, onToggle }: SidebarProps) {
                 <Button
                   onClick={() => handleNavigation("/registrar")}
                   className="w-full bg-[#DE2535] hover:bg-[#c41e2a] text-white text-sm"
-                  size="sm"
+                  size="lg"
                 >
                   <Plus className="h-5 w-5 flex-shrink-0 text-white" />
                   Criar Conta

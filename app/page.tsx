@@ -194,7 +194,7 @@ export default function HomePage() {
                     <Button
                       size="lg"
                       onClick={scrollToCourses}
-                      className="bg-[#DE2535] hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="bg-[#DE2535] hover:bg-[#c41e2a] text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       Inscreva-se
                       <ArrowRight className="ml-2 h-5 w-5" />
