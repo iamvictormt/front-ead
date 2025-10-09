@@ -286,7 +286,7 @@ export default function CursoPublicoPage() {
                             </p>
                           ) : (
                             <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                              {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(
                                 course.price
                               )}
                             </p>
@@ -313,7 +313,7 @@ export default function CursoPublicoPage() {
                           <>
                             <Button
                               onClick={handleBuyNow}
-                              className="flex-1 bg-[#DE2535] hover:bg-[#DE2535]/90"
+                              className="flex-1 bg-[#DE2535] hover:bg-[#DE2535]/90 p-2"
                               size="lg"
                             >
                               <ShoppingCart className="w-5 h-5 mr-2" />
@@ -322,7 +322,7 @@ export default function CursoPublicoPage() {
                             <Button
                               onClick={handleAddToCart}
                               variant="outline"
-                              className="flex-1 bg-transparent"
+                              className="flex-1 bg-transparent p-2"
                               size="lg"
                             >
                               <ShoppingCart className="w-5 h-5 mr-2" />
