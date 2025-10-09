@@ -120,7 +120,7 @@ export default function HomePage() {
     }
   };
 
-  if (isLoading) {
+  if (loadingCourses || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex items-center space-x-2">
