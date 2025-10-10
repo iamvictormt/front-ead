@@ -329,6 +329,12 @@ class ApiService {
     });
   }
 
+  async getAvailableCoursesByUser(userId: number): Promise<ApiResponse<CourseAvailable[]>> {
+    return this.request<CourseAvailable[]>(`/courses/available/${userId}`, {
+      method: 'GET',
+    });
+  }
+
   async getCourse(id: string): Promise<ApiResponse<Course>> {
     return this.request<Course>(`/courses/${id}`, {
       method: 'GET',

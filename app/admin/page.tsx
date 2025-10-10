@@ -1,71 +1,98 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useAuth } from "@/contexts/auth-context"
-import { useSidebar } from "@/contexts/sidebar-context"
-import { useEffect, useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import clsx from "clsx"
-import Link from "next/link"
-import { apiService } from "@/lib/api"
-import { formatKwanza } from "@/lib/utils"
-import { Users, BookOpen, BarChart3, ShoppingBag, Plus, UserCheck, TrendingUp, ChevronRight } from "lucide-react"
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useAuth } from '@/contexts/auth-context';
+import { useSidebar } from '@/contexts/sidebar-context';
+import { useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import clsx from 'clsx';
+import Link from 'next/link';
+import { apiService } from '@/lib/api';
+import { formatKwanza } from '@/lib/utils';
+import {
+  Users,
+  BookOpen,
+  BarChart3,
+  ShoppingBag,
+  Plus,
+  UserCheck,
+  TrendingUp,
+  ChevronRight,
+  Loader2,
+} from 'lucide-react';
 
 interface DashboardData {
   recentUsers: Array<{
-    name: string
-    email: string
-    profilePic: string | null
-    createdAt: string
-  }>
-  totalStudents: number
-  activeCourses: number
-  monthlyRevenue: number
-  totalPurchases: number
+    name: string;
+    email: string;
+    profilePic: string | null;
+    createdAt: string;
+  }>;
+  totalStudents: number;
+  activeCourses: number;
+  monthlyRevenue: number;
+  totalPurchases: number;
   topCourses: Array<{
-    courseId: number
-    _count: { courseId: number }
-    title: string
-  }>
+    courseId: number;
+    _count: { courseId: number };
+    title: string;
+  }>;
 }
 
 export default function AdminDashboard() {
-  const { isCollapsed, setIsCollapsed } = useSidebar()
-  const { user } = useAuth()
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      setLoading(true);
       try {
-        const response = await apiService.getAdminStats()
-        setDashboardData(response.data)
+        const response = await apiService.getAdminStats();
+        setDashboardData(response.data);
+        setLoading(false);
       } catch (error) {
-        console.error("Erro ao carregar dados da dashboard:", error)
+        console.error('Erro ao carregar dados da dashboard:', error);
+        setLoading(false);
       }
-    }
+    };
 
-    loadDashboardData()
-  }, [apiService])
+    loadDashboardData();
+  }, [apiService]);
 
   const formatRelativeDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffInDays === 0) return "Hoje"
-    if (diffInDays === 1) return "Ontem"
-    return `Há ${diffInDays} dias`
+    if (diffInDays === 0) return 'Hoje';
+    if (diffInDays === 1) return 'Ontem';
+    return `Há ${diffInDays} dias`;
+  };
+
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
+    'pt-14 md:pt-0': true,
+  });
+
+  if (loading) {
+    return (
+      <ProtectedRoute allowedRoles={['ADMIN']}>
+        <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-white" />
+            <span className="text-foreground dark:text-white">Carregando dashboard...</span>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
   }
 
-  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
-    "md:ml-42": isCollapsed,
-    "md:ml-80": !isCollapsed,
-    "pt-14 md:pt-0": true,
-  })
-
   return (
-    <ProtectedRoute allowedRoles={["ADMIN"]}>
+    <ProtectedRoute allowedRoles={['ADMIN']}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsCollapsed} />
 
@@ -75,16 +102,16 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white ml-12 md:ml-0">
-                    Olá, {user?.name?.split(" ")[0]}! 👨‍💼
+                    Olá, {user?.name?.split(' ')[0]}! 👨‍💼
                   </h1>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-4">
                   <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
-                    {new Date().toLocaleDateString("pt-BR", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
+                    {new Date().toLocaleDateString('pt-BR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
                     })}
                   </div>
                 </div>
@@ -136,7 +163,9 @@ export default function AdminDashboard() {
                           Receita Mensal
                         </p>
                         <p className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-                          {dashboardData ? formatKwanza(dashboardData.monthlyRevenue) : "0,00 Kz"}
+                          {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(
+                            dashboardData?.monthlyRevenue ?? 0
+                          )}
                         </p>
                       </div>
                     </div>
@@ -175,9 +204,9 @@ export default function AdminDashboard() {
                               <AvatarImage src={user.profilePic || undefined} alt={user.name} />
                               <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium">
                                 {user.name
-                                  .split(" ")
+                                  .split(' ')
                                   .map((n) => n[0])
-                                  .join("")
+                                  .join('')
                                   .toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
@@ -217,7 +246,7 @@ export default function AdminDashboard() {
                                 {course.title}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {course._count.courseId} {course._count.courseId === 1 ? "aluno" : "alunos"}
+                                {course._count.courseId} {course._count.courseId === 1 ? 'aluno' : 'alunos'}
                               </p>
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">#{index + 1}</div>
@@ -315,5 +344,5 @@ export default function AdminDashboard() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

@@ -68,8 +68,11 @@ export default function ManageStudentsPage() {
 
   useEffect(() => {
     loadUsers(currentPage);
-    loadCourses();
   }, [currentPage]);
+
+  useEffect(() => {
+    if (selectedUser) loadCourses();
+  }, [selectedUser]);
 
   const loadUsers = async (page = 1) => {
     try {
@@ -85,8 +88,9 @@ export default function ManageStudentsPage() {
   };
 
   const loadCourses = async () => {
+    if(selectedUser === null) return;
     try {
-      const response = await apiService.getAllCourses();
+      const response = await apiService.getAvailableCoursesByUser(selectedUser?.id);
       setCourses(response.data);
     } catch (error) {
       console.error('Erro ao carregar cursos:', error);
@@ -248,6 +252,7 @@ export default function ManageStudentsPage() {
                               <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
                                 {user.name
                                   .split(' ')
+                                  .slice(0, 2)
                                   .map((n) => n[0])
                                   .join('')
                                   .toUpperCase()}
@@ -288,12 +293,12 @@ export default function ManageStudentsPage() {
                                     className="flex items-center space-x-1"
                                   >
                                     <Gift className="w-4 h-4" />
-                                    <span className="hidden md:inline">Dar Curso</span>
+                                    <span className="hidden md:inline">Vincular Curso</span>
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogHeader>
-                                    <DialogTitle>Vincular Curso Gratuito</DialogTitle>
+                                    <DialogTitle>Vincular Curso</DialogTitle>
                                   </DialogHeader>
                                   <div className="space-y-4">
                                     <div>
@@ -332,7 +337,10 @@ export default function ManageStudentsPage() {
                                               <div className="flex items-center justify-between w-full">
                                                 <span>{course.title}</span>
                                                 <span className="text-xs text-gray-500 ml-2">
-                                                  R$ {course.price.toFixed(2)}
+                                                  {new Intl.NumberFormat('pt-AO', {
+                                                    style: 'currency',
+                                                    currency: 'AOA',
+                                                  }).format(course.price)}
                                                 </span>
                                               </div>
                                             </SelectItem>
