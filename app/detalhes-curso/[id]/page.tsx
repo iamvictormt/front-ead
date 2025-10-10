@@ -219,7 +219,16 @@ export default function CursoPublicoPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-4 md:p-6">
             <div className="flex items-center justify-between">
               <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">Detalhes do Curso</h1>
-              <Button variant="outline" onClick={() => router.push('/comprar-cursos')}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (user) {
+                    router.push('/aluno/comprar-cursos');
+                  } else {
+                    router.push('/cursos-disponiveis');
+                  }
+                }}
+              >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 <span className="hidden md:inline">Voltar aos Cursos</span>
                 <span className="md:hidden">Voltar</span>

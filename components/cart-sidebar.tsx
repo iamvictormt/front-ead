@@ -1,17 +1,24 @@
-"use client"
+'use client';
 
-import { useCart } from "@/contexts/cart-context"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, ShoppingBag, Trash2, CreditCard } from "lucide-react"
-import Image from "next/image"
-import { formatKwanza } from "@/lib/utils"
+import { useCart } from '@/contexts/cart-context';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { X, ShoppingBag, Trash2, CreditCard } from 'lucide-react';
+import Image from 'next/image';
+import { formatKwanza } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export function CartSidebar() {
-  const { items, removeFromCart, clearCart, getTotalPrice, getTotalItems, isOpen, closeCart } = useCart()
+  const { items, removeFromCart, clearCart, getTotalPrice, getTotalItems, isOpen, closeCart } = useCart();
+  const router = useRouter();
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
+
+  const handleCheckout = () => {
+    closeCart();
+    router.push('/aluno/carrinho');
+  };
 
   return (
     <>
@@ -23,7 +30,7 @@ export function CartSidebar() {
         className={`
         fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl z-50
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? "translate-x-0" : "translate-x-full"}
+        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         flex flex-col
       `}
       >
@@ -71,7 +78,7 @@ export function CartSidebar() {
                   >
                     <div className="relative w-16 h-12 rounded-md overflow-hidden flex-shrink-0">
                       <Image
-                        src={item.thumbnailUrl || "/placeholder.svg"}
+                        src={item.thumbnailUrl || '/placeholder.svg'}
                         alt={item.title}
                         fill
                         className="object-cover"
@@ -112,20 +119,19 @@ export function CartSidebar() {
                   size="lg"
                   onClick={() => {
                     // Verificar se usuário está logado
-                    const user = JSON.parse(localStorage.getItem("user") || "null")
+                    const user = JSON.parse(localStorage.getItem('user') || 'null');
                     if (!user) {
                       // Salvar carrinho e redirecionar para login
                       localStorage.setItem(
-                        "pendingAction",
+                        'pendingAction',
                         JSON.stringify({
-                          type: "checkout",
-                          returnUrl: "/comprar-cursos",
-                        }),
-                      )
-                      window.location.href = "/login"
+                          type: 'checkout',
+                          returnUrl: '/comprar-cursos',
+                        })
+                      );
+                      window.location.href = '/login';
                     } else {
-                      // Prosseguir com checkout
-                      console.log("Finalizar compra para usuário logado")
+                      handleCheckout();
                     }
                   }}
                 >
@@ -145,5 +151,5 @@ export function CartSidebar() {
         )}
       </div>
     </>
-  )
+  );
 }
