@@ -317,8 +317,8 @@ class ApiService {
     return this.request(endpoint);
   }
 
-  async getAllUsers(page = 1, limit = 20): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/users?page=${page}&limit=${limit}`, {
+  async getAllUsers(page = 1, limit = 20, search: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/users?page=${page}&limit=${limit}&search=${search}`, {
       method: 'GET',
     });
   }
@@ -563,10 +563,10 @@ class ApiService {
     });
   }
 
-  async giftCourse(userId: string, courseId: number) {
-    return this.request(`/courses/${courseId}/gift`, {
+  async enrollCourseStudent(userId: number, courseId: number) {
+    return this.request(`/purchases`, {
       method: 'POST',
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId: userId, courseId: courseId }),
     });
   }
 

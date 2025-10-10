@@ -51,7 +51,7 @@ export default function ComprarCursosPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push('/aluno/comprar-cursos');
       return;
     }
   }, [user]);
@@ -157,7 +157,7 @@ export default function ComprarCursosPage() {
                 <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 md:dark:text-white ml-12 md:ml-0">
                   Cursos Disponíveis
                 </h1>
-                <p className="text-xs text-gray-400 md:dark:text-gray-300 hidden md:block">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                   {courses.length} cursos disponíveis para você explorar e aprender.
                 </p>
               </div>

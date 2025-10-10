@@ -206,9 +206,7 @@ export default function AdminCoursesPage() {
                   <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 md:dark:text-white ml-12 md:ml-0">
                     Gerenciar Cursos
                   </h1>
-                  <p className="text-xs text-gray-400 md:dark:text-gray-300 hidden md:block">
-                    {courses.length} cursos cadastrados
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{courses.length} cursos cadastrados</p>
                 </div>
                 <Link href="/admin/cursos/novo">
                   <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white">

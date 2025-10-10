@@ -57,7 +57,7 @@ export default function LoginPage() {
 
       const pendingAction: any = JSON.parse(localStorage.getItem('pendingAction') || 'null');
       if (pendingAction) {
-        router.push(`detalhes-curso/${pendingAction.courseId}` || '/');
+        router.push(`/detalhes-curso/${pendingAction.courseId}` || '/');
         localStorage.removeItem('pendingAction');
       } else {
         if (result.role === 'STUDENT') {

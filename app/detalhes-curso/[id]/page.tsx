@@ -5,7 +5,18 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiService, type Lesson, type Module, type Course } from '@/lib/api';
-import { PlayCircle, Users, Star, Loader2, ArrowLeft, ShoppingCart, Lock, BookOpen, Package } from 'lucide-react';
+import {
+  PlayCircle,
+  Users,
+  Star,
+  Loader2,
+  ArrowLeft,
+  ShoppingCart,
+  Lock,
+  BookOpen,
+  Package,
+  LogIn,
+} from 'lucide-react';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
@@ -29,7 +40,7 @@ export default function CursoPublicoPage() {
   const [enrolling, setEnrolling] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<'addToCart' | 'buyNow' | 'enrollFree' | null>(null);
-  const { error: showError, success: showSuccess } = useToast();
+  const { error: showError, success: showSuccess, info: showInfo } = useToast();
   const router = useRouter();
   const params = useParams();
   const courseId = params.id as string;
@@ -191,7 +202,7 @@ export default function CursoPublicoPage() {
       <CollapsibleSidebar onToggle={setIsCollapsed} />
 
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">Login Necessário</DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-300">
@@ -209,7 +220,10 @@ export default function CursoPublicoPage() {
             >
               Cancelar
             </Button>
-            <Button onClick={handleLoginRedirect}>Fazer Login</Button>
+            <Button onClick={handleLoginRedirect}>
+              <LogIn className="h-4 w-4 mr-1" />
+              Fazer Login
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -369,11 +383,28 @@ export default function CursoPublicoPage() {
 
               <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-                    Conteúdo do Curso
-                  </CardTitle>
+                  <CardTitle className="text-gray-900 dark:text-white flex items-center">Conteúdo do Curso</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {!user && (
+                    <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                            Faça login para acessar o conteúdo completo
+                          </h4>
+                          <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                            Matricule-se neste curso gratuito para ter acesso a todas as aulas e certificado.
+                          </p>
+                          <Button size="sm" onClick={() => router.push('/login')}>
+                            Fazer Login
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {course.price > 0 ? (
                     <div className="space-y-6">
                       <div className="relative">
@@ -484,10 +515,13 @@ export default function CursoPublicoPage() {
                                 {module.lessons?.map((lesson: Lesson, lessonIndex: number) => (
                                   <div
                                     key={lesson.id}
-                                    className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                    className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                                    onClick={() => {
+                                      showInfo('Faça o login para assistir o conteúdo completo');
+                                    }}
                                   >
                                     <div className="flex items-center gap-3 flex-1">
-                                      <PlayCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                                      <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 dark:text-white break-words sm:truncate">
                                           Aula {lessonIndex + 1}: {lesson.title}
@@ -499,25 +533,6 @@ export default function CursoPublicoPage() {
                               </div>
                             </div>
                           ))}
-
-                          {!user && (
-                            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                              <div className="flex items-start gap-3">
-                                <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                <div>
-                                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                                    Faça login para acessar o conteúdo completo
-                                  </h4>
-                                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                                    Matricule-se neste curso gratuito para ter acesso a todas as aulas e certificado.
-                                  </p>
-                                  <Button size="sm" onClick={() => router.push('/login')}>
-                                    Fazer Login
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </>
                       ) : (
                         <div className="text-center py-12">

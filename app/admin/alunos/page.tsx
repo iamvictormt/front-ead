@@ -2,7 +2,6 @@
 
 import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
 import { ProtectedRoute } from '@/components/protected-route';
-import { useAuth } from '@/contexts/auth-context';
 import { useSidebar } from '@/contexts/sidebar-context';
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
 import clsx from 'clsx';
-import { Search, Gift, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Gift, Users, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 
@@ -52,7 +51,11 @@ export default function ManageStudentsPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // Input temporário antes de pesquisar
+  const [isSearching, setIsSearching] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<string>('');
@@ -67,17 +70,17 @@ export default function ManageStudentsPage() {
   });
 
   useEffect(() => {
-    loadUsers(currentPage);
+    loadUsers();
   }, [currentPage]);
 
   useEffect(() => {
     if (selectedUser) loadCourses();
   }, [selectedUser]);
 
-  const loadUsers = async (page = 1) => {
+  const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getAllUsers(page);
+      const response = await apiService.getAllUsers(currentPage, 20, searchInput || '');
       setUsersData(response.data);
     } catch (error) {
       console.error('Erro ao carregar alunos:', error);
@@ -87,8 +90,22 @@ export default function ManageStudentsPage() {
     }
   };
 
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+    setCurrentPage(1); // Reset para primeira página ao pesquisar
+    setIsSearching(true);
+    loadUsers();
+    setIsSearching(false);
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
   const loadCourses = async () => {
-    if(selectedUser === null) return;
+    if (selectedUser === null) return;
     try {
       const response = await apiService.getAvailableCoursesByUser(selectedUser?.id);
       setCourses(response.data);
@@ -102,14 +119,13 @@ export default function ManageStudentsPage() {
 
     try {
       setIsEnrolling(true);
-      const response = await apiService.giftCourse(selectedUser.id.toString(), Number.parseInt(selectedCourse));
-      console.log(response);
+      const response = await apiService.enrollCourseStudent(selectedUser.id, Number.parseInt(selectedCourse));
       if (response.success) {
         setShowEnrollDialog(false);
         setSelectedUser(null);
         setSelectedCourse('');
-        loadUsers(currentPage);
-        success('Curso vinculado com sucesso ao aluno!');
+        loadUsers();
+        success('Curso vinculado ao aluno com sucesso!');
       } else {
         showError(response.error || 'Erro ao vincular usuário ao curso');
       }
@@ -135,12 +151,6 @@ export default function ManageStudentsPage() {
     }
   };
 
-  const filteredUsers = usersData.users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -153,7 +163,9 @@ export default function ManageStudentsPage() {
     }
   };
 
-  if (loading) {
+  const hasActiveFilters = searchTerm;
+
+  if (loading && !usersData.users.length) {
     return (
       <ProtectedRoute allowedRoles={['ADMIN']}>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
@@ -179,9 +191,6 @@ export default function ManageStudentsPage() {
                   <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 md:dark:text-white ml-12 md:ml-0">
                     Gerenciar Alunos
                   </h1>
-                  <p className="text-xs text-gray-400 md:dark:text-gray-300 hidden md:block">
-                    {usersData.total} alunos cadastrados
-                  </p>
                 </div>
                 <div className="flex items-center space-x-4">
                   <Badge
@@ -210,24 +219,69 @@ export default function ManageStudentsPage() {
                   </div>
                 )}
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-                    <Input
-                      placeholder="Pesquisar alunos por nome ou email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    />
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 space-y-4">
+                  {/* Pesquisa */}
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                      <Input
+                        placeholder="Pesquisar por nome ou email..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSearch();
+                          }
+                        }}
+                        className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSearch}
+                      disabled={isSearching}
+                      className="bg-[#DE2535] hover:bg-[#DE2535]/90 text-white"
+                    >
+                      {isSearching ? (
+                        <>
+                          <LoadingSpinner className="w-4 h-4 mr-2" />
+                          Pesquisando...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4 mr-2" />
+                          Pesquisar
+                        </>
+                      )}
+                    </Button>
                   </div>
+
+                  {/* Botão Limpar Filtros */}
+                  {hasActiveFilters && (
+                    <div className="flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearFilters}
+                        className="text-gray-600 dark:text-gray-300 bg-transparent"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Limpar Filtros
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-8">
                   <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-300">
                     <span className="text-lg">
-                      {filteredUsers.length} aluno{filteredUsers.length !== 1 ? 's' : ''} encontrado
-                      {filteredUsers.length !== 1 ? 's' : ''}
+                      {usersData.users.length} aluno{usersData.users.length !== 1 ? 's' : ''} encontrado
+                      {usersData.users.length !== 1 ? 's' : ''}
                     </span>
+                    {hasActiveFilters && (
+                      <Badge variant="secondary" className="text-xs">
+                        Filtros ativos
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -237,168 +291,179 @@ export default function ManageStudentsPage() {
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Alunos Cadastrados</h2>
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        Mostrando {filteredUsers.length} de {usersData.total} alunos
+                        Mostrando {usersData.users.length} de {usersData.total} alunos
                       </span>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {filteredUsers.map((user) => (
-                      <div key={user.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={user.profilePic || undefined} alt={user.name} />
-                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
-                                {user.name
-                                  .split(' ')
-                                  .slice(0, 2)
-                                  .map((n) => n[0])
-                                  .join('')
-                                  .toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                  {loading ? (
+                    <div className="p-8 flex justify-center">
+                      <LoadingSpinner className="w-6 h-6 text-primary" />
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {usersData.users.map((user) => (
+                        <div key={user.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage src={user.profilePic || undefined} alt={user.name} />
+                                <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                                  {user.name
+                                    .split(' ')
+                                    .slice(0, 2)
+                                    .map((n) => n[0])
+                                    .join('')
+                                    .toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
 
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                  {user.name}
-                                </h3>
-                                {getRoleBadge(user.role)}
-                              </div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                <span>Cadastrado em {formatDate(user.createdAt)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {user.name}
+                                  </h3>
+                                  {getRoleBadge(user.role)}
+                                </div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                                <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                  <span>Cadastrado em {formatDate(user.createdAt)}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center space-x-2">
-                            {user.role === 'STUDENT' && (
-                              <Dialog
-                                open={showEnrollDialog && selectedUser?.id === user.id}
-                                onOpenChange={(open) => {
-                                  setShowEnrollDialog(open);
-                                  if (!open) {
-                                    setSelectedUser(null);
-                                    setSelectedCourse('');
-                                  }
-                                }}
-                              >
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedUser(user)}
-                                    className="flex items-center space-x-1"
-                                  >
-                                    <Gift className="w-4 h-4" />
-                                    <span className="hidden md:inline">Vincular Curso</span>
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Vincular Curso</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                        Usuário selecionado:
-                                      </p>
-                                      <div className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                                        <Avatar className="w-8 h-8">
-                                          <AvatarImage src={user.profilePic || undefined} alt={user.name} />
-                                          <AvatarFallback className="text-xs">
-                                            {user.name
-                                              .split(' ')
-                                              .map((n) => n[0])
-                                              .join('')
-                                              .toUpperCase()}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                          <p className="text-sm font-medium">{user.name}</p>
-                                          <p className="text-xs text-gray-500">{user.email}</p>
+                            <div className="flex items-center space-x-2">
+                              {user.role === 'STUDENT' && (
+                                <Dialog
+                                  open={showEnrollDialog && selectedUser?.id === user.id}
+                                  onOpenChange={(open) => {
+                                    setShowEnrollDialog(open);
+                                    if (!open) {
+                                      setSelectedUser(null);
+                                      setSelectedCourse('');
+                                    }
+                                  }}
+                                >
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setSelectedUser(user)}
+                                      className="flex items-center space-x-1"
+                                    >
+                                      <Gift className="w-4 h-4" />
+                                      <span className="hidden md:inline">Vincular Curso</span>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Vincular Curso</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                          Usuário selecionado:
+                                        </p>
+                                        <div className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                          <Avatar className="w-8 h-8">
+                                            <AvatarImage src={user.profilePic || undefined} alt={user.name} />
+                                            <AvatarFallback className="text-xs">
+                                              {user.name
+                                                .split(' ')
+                                                .map((n) => n[0])
+                                                .join('')
+                                                .toUpperCase()}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <div>
+                                            <p className="text-sm font-medium">{user.name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
 
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                                        Selecionar Curso:
-                                      </label>
-                                      <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Escolha um curso..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {courses.map((course) => (
-                                            <SelectItem key={course.id} value={course.id.toString()}>
-                                              <div className="flex items-center justify-between w-full">
-                                                <span>{course.title}</span>
-                                                <span className="text-xs text-gray-500 ml-2">
-                                                  {new Intl.NumberFormat('pt-AO', {
-                                                    style: 'currency',
-                                                    currency: 'AOA',
-                                                  }).format(course.price)}
-                                                </span>
-                                              </div>
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                                          Selecionar Curso:
+                                        </label>
+                                        <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Escolha um curso..." />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {courses.length === 0 && (
+                                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block pl-2 pt-2">
+                                                Nenhum curso disponível para esse usuário
+                                              </label>
+                                            )}
+                                            {courses.map((course) => (
+                                              <SelectItem key={course.id} value={course.id.toString()}>
+                                                <div className="flex items-center justify-between w-full">
+                                                  <span>{course.title}</span>
+                                                  <span className="text-xs text-gray-500 ml-2">
+                                                    {new Intl.NumberFormat('pt-AO', {
+                                                      style: 'currency',
+                                                      currency: 'AOA',
+                                                    }).format(course.price)}
+                                                  </span>
+                                                </div>
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
 
-                                    <div className="flex justify-end space-x-2 pt-4">
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => setShowEnrollDialog(false)}
-                                        disabled={isEnrolling}
-                                      >
-                                        Cancelar
-                                      </Button>
-                                      <Button onClick={handleEnrollUser} disabled={!selectedCourse || isEnrolling}>
-                                        {isEnrolling ? (
-                                          <>
-                                            <LoadingSpinner className="w-4 h-4 mr-2" />
-                                            Vinculando...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Gift className="w-4 h-4 mr-2" />
-                                            Vincular Curso
-                                          </>
-                                        )}
-                                      </Button>
+                                      <div className="flex justify-end space-x-2 pt-4">
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => setShowEnrollDialog(false)}
+                                          disabled={isEnrolling}
+                                        >
+                                          Cancelar
+                                        </Button>
+                                        <Button onClick={handleEnrollUser} disabled={!selectedCourse || isEnrolling}>
+                                          {isEnrolling ? (
+                                            <>
+                                              <LoadingSpinner className="w-4 h-4 mr-2" />
+                                              Vinculando...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Gift className="w-4 h-4 mr-2" />
+                                              Vincular Curso
+                                            </>
+                                          )}
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            )}
+                                  </DialogContent>
+                                </Dialog>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
 
-                  {filteredUsers.length === 0 && (
+                  {usersData.users.length === 0 && !loading && (
                     <div className="p-8 text-center">
                       <Users className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4 opacity-50" />
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                         Nenhum usuário encontrado
                       </h3>
                       <p className="text-gray-600 dark:text-gray-300 mb-6">
-                        {searchTerm
-                          ? 'Não encontramos alunos que correspondam à sua busca.'
+                        {hasActiveFilters
+                          ? 'Não encontramos alunos que correspondam aos filtros aplicados.'
                           : 'Nenhum usuário cadastrado no sistema.'}
                       </p>
-                      {searchTerm && (
+                      {hasActiveFilters && (
                         <Button
                           variant="outline"
-                          onClick={() => setSearchTerm('')}
-                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+                          onClick={handleClearFilters}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 bg-transparent"
                         >
-                          Ver todos os alunos
+                          Limpar Filtros
                         </Button>
                       )}
                     </div>
@@ -416,7 +481,7 @@ export default function ManageStudentsPage() {
                           variant="outline"
                           size="sm"
                           onClick={handlePreviousPage}
-                          disabled={currentPage === 1}
+                          disabled={currentPage === 1 || loading}
                           className="flex items-center space-x-1 bg-transparent"
                         >
                           <ChevronLeft className="w-4 h-4" />
@@ -426,7 +491,7 @@ export default function ManageStudentsPage() {
                           variant="outline"
                           size="sm"
                           onClick={handleNextPage}
-                          disabled={currentPage === usersData.totalPages}
+                          disabled={currentPage === usersData.totalPages || loading}
                           className="flex items-center space-x-1 bg-transparent"
                         >
                           <span>Próxima</span>

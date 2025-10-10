@@ -146,9 +146,7 @@ export default function BuyCoursesPage() {
                   <h1 className="text-xl md:text-2xl font-semibold text-white md:text-gray-900 md:dark:text-white ml-12 md:ml-0">
                     Comprar Cursos
                   </h1>
-                  <p className="text-xs text-gray-400 md:dark:text-gray-300 hidden md:block">
-                    {courses.length} cursos disponíveis
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{courses.length} cursos disponíveis</p>
                 </div>
               </div>
             </div>
@@ -300,12 +298,12 @@ export default function BuyCoursesPage() {
                                   )}
                                 </Button>
 
-                              <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
-                                <Button className="w-full transition-all duration-200 bg-[#DE2535] hover:bg-[#c41e2a] text-white">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Ver Mais
-                                </Button>
-                              </Link>
+                                <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
+                                  <Button className="w-full transition-all duration-200 bg-[#DE2535] hover:bg-[#c41e2a] text-white">
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Ver Mais
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
                           </div>
