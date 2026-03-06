@@ -499,6 +499,18 @@ class ApiService {
     });
   }
 
+  // Homepage Settings
+  async getHomepageSettings(): Promise<ApiResponse<{ videoUrl: string }>> {
+    return this.request('/settings/homepage');
+  }
+
+  async updateHomepageSettings(data: { videoUrl: string }): Promise<ApiResponse<{ videoUrl: string }>> {
+    return this.request('/settings/homepage', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getCourseDetails(courseId: string): Promise<ApiResponse<MyCourse>> {
     return this.request<MyCourse>(`/courses/my-courses/${courseId}`);
   }
