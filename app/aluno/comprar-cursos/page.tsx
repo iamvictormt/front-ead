@@ -47,10 +47,6 @@ export default function BuyCoursesPage() {
 
   useEffect(() => {
     loadCoursesAvailable();
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
   }, []);
 
   const loadCoursesAvailable = async () => {
@@ -226,7 +222,7 @@ export default function BuyCoursesPage() {
 
                           {/* Course content */}
                           <div className="p-6">
-                            <h3 className="text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-2">
+                            <h3 className="text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-1 ">
                               {course.title}
                             </h3>
 
@@ -256,26 +252,30 @@ export default function BuyCoursesPage() {
                             </div>
 
                             {/* Price and buy button */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-                              <div className="text-2xl font-bold text-primary dark:text-blue-400">
+                            <div className="flex flex-col gap-3 w-full">
+                              {/* PREÇO */}
+                              <div className="flex justify-center">
                                 {course.price === 0 ? (
-                                  <p className="text-sm inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 font-semibold">
+                                  <span className="text-sm inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 font-semibold">
                                     Grátis
-                                  </p>
+                                  </span>
                                 ) : (
-                                  formatKwanza(course.price)
+                                  <span className="text-2xl font-bold text-primary dark:text-blue-400">
+                                    {formatKwanza(course.price)}
+                                  </span>
                                 )}
                               </div>
 
-                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                              {/* BOTÕES */}
+                              <div className="flex gap-2 w-full">
                                 <Button
                                   className={clsx(
-                                    'transition-all duration-200',
+                                    'flex-1 transition-all duration-200',
                                     inCart
                                       ? 'bg-green-600 hover:bg-green-700 text-white'
                                       : course.price === 0
-                                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                                      : 'bg-accent hover:bg-accent/90 text-accent-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white'
+                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                        : 'bg-red-600 hover:bg-red-700 text-white',
                                   )}
                                   onClick={() => handleAddToCart(course)}
                                   disabled={inCart}
@@ -298,8 +298,8 @@ export default function BuyCoursesPage() {
                                   )}
                                 </Button>
 
-                                <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
-                                  <Button className="w-full transition-all duration-200 bg-[#DE2535] hover:bg-[#c41e2a] text-white">
+                                <Link href={`/detalhes-curso/${course.id}`} className="flex-1">
+                                  <Button className="w-full text-black dark:text-white bg-input/30 border-input hover:bg-input/50">
                                     <Eye className="h-4 w-4 mr-1" />
                                     Ver Mais
                                   </Button>

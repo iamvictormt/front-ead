@@ -1,141 +1,141 @@
-"use client"
+'use client';
 
-import { CollapsibleSidebar } from "@/components/collapsible-sidebar"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useState, useEffect } from "react"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { User, Mail, Award, Save, Edit, Download, Phone, MapPin, Briefcase, Calendar, Lock } from "lucide-react"
-import clsx from "clsx"
-import { useSidebar } from "@/contexts/sidebar-context"
-import { apiService } from "@/lib/api"
-import { useToast } from "@/contexts/toast-context"
+import { CollapsibleSidebar } from '@/components/collapsible-sidebar';
+import { ProtectedRoute } from '@/components/protected-route';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { User, Mail, Award, Save, Edit, Download, Phone, MapPin, Briefcase, Calendar, Lock } from 'lucide-react';
+import clsx from 'clsx';
+import { useSidebar } from '@/contexts/sidebar-context';
+import { apiService } from '@/lib/api';
+import { useToast } from '@/contexts/toast-context';
 
 export default function PerfilPage() {
-  const { isCollapsed, setIsCollapsed } = useSidebar()
-  const [isEditing, setIsEditing] = useState(false)
-  const { user, updateProfile, isLoading } = useAuth()
-  const [certificates, setCertificates] = useState([])
-  const [loadingCertificates, setLoadingCertificates] = useState(false)
-  const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null)
-  const { success, error: showError } = useToast()
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [isEditing, setIsEditing] = useState(false);
+  const { user, updateProfile, isLoading } = useAuth();
+  const [certificates, setCertificates] = useState([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
+  const [downloadingCertificate, setDownloadingCertificate] = useState<string | null>(null);
+  const { success, error: showError } = useToast();
 
   const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  })
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const contentMargin = clsx("transition-all duration-300 ease-in-out flex flex-col min-h-screen", {
-    "md:ml-42": isCollapsed,
-    "md:ml-80": !isCollapsed,
-  })
+  const contentMargin = clsx('transition-all duration-300 ease-in-out flex flex-col min-h-screen', {
+    'md:ml-42': isCollapsed,
+    'md:ml-80': !isCollapsed,
+  });
 
   const [profileData, setProfileData] = useState({
-    nome: user?.name || "",
-    email: user?.email || "",
-    country: user?.country || "",
-    city: user?.city || "",
-    profession: user?.profession || "",
-    phone: user?.phone || "",
-    birthDate: user?.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
-    profilePic: user?.profilePic || "",
-  })
+    nome: user?.name || '',
+    email: user?.email || '',
+    country: user?.country || '',
+    city: user?.city || '',
+    profession: user?.profession || '',
+    phone: user?.phone || '',
+    birthDate: user?.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '',
+    profilePic: user?.profilePic || '',
+  });
 
   useEffect(() => {
     if (user) {
       setProfileData({
-        nome: user.name || "",
-        email: user.email || "",
-        country: user.country || "",
-        city: user.city || "",
-        profession: user.profession || "",
-        phone: user.phone || "",
-        birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
-        profilePic: user.profilePic || "",
-      })
+        nome: user.name || '',
+        email: user.email || '',
+        country: user.country || '',
+        city: user.city || '',
+        profession: user.profession || '',
+        phone: user.phone || '',
+        birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '',
+        profilePic: user.profilePic || '',
+      });
     }
-  }, [user])
+  }, [user]);
 
   const conquistas = [
     {
       id: 1,
-      titulo: "Primeiro Curso Concluído",
-      descricao: "Completou seu primeiro curso na plataforma",
-      data: "2024-01-10",
-      icone: "🎓",
+      titulo: 'Primeiro Curso Concluído',
+      descricao: 'Completou seu primeiro curso na plataforma',
+      data: '2024-01-10',
+      icone: '🎓',
     },
     {
       id: 2,
-      titulo: "Estudante Dedicado",
-      descricao: "Completou 20+ horas de estudo",
-      data: "2024-01-25",
-      icone: "📚",
+      titulo: 'Estudante Dedicado',
+      descricao: 'Completou 20+ horas de estudo',
+      data: '2024-01-25',
+      icone: '📚',
     },
     {
       id: 3,
-      titulo: "Meta Semanal",
-      descricao: "Completou 5 lições em uma semana",
-      data: "2024-02-01",
-      icone: "🎯",
+      titulo: 'Meta Semanal',
+      descricao: 'Completou 5 lições em uma semana',
+      data: '2024-02-01',
+      icone: '🎯',
     },
-  ]
+  ];
 
   useEffect(() => {
     if (user) {
-      loadCertificates()
+      loadCertificates();
     }
-  }, [user])
+  }, [user]);
 
   const loadCertificates = async () => {
-    setLoadingCertificates(true)
+    setLoadingCertificates(true);
     try {
-      const response = await apiService.getCertificates()
+      const response = await apiService.getCertificates();
       if (response.success && response.data) {
-        setCertificates(response.data)
+        setCertificates(response.data);
       } else {
-        showError("Não foi possível carregar os certificados")
+        showError('Não foi possível carregar os certificados');
       }
     } catch (error) {
-      console.error("Error loading certificates:", error)
-      showError("Erro ao carregar certificados")
+      console.error('Error loading certificates:', error);
+      showError('Erro ao carregar certificados');
     } finally {
-      setLoadingCertificates(false)
+      setLoadingCertificates(false);
     }
-  }
+  };
 
   const handleDownloadCertificate = async (courseId: string, courseName: string) => {
-    setDownloadingCertificate(courseId)
+    setDownloadingCertificate(courseId);
     try {
-      const response = await apiService.downloadCertificate(courseId)
+      const response = await apiService.downloadCertificate(courseId);
       if (response.success && response.data) {
-        const url = window.URL.createObjectURL(response.data)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `certificado-${courseName.replace(/\s+/g, "-").toLowerCase()}.pdf`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
+        const url = window.URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `certificado-${courseName.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
-        success("Certificado baixado com sucesso!")
+        success('Certificado baixado com sucesso!');
       } else {
-        showError("Não foi possível baixar o certificado")
+        showError('Não foi possível baixar o certificado');
       }
     } catch (error) {
-      console.error("Error downloading certificate:", error)
-      showError("Erro ao baixar certificado")
+      console.error('Error downloading certificate:', error);
+      showError('Erro ao baixar certificado');
     } finally {
-      setDownloadingCertificate(null)
+      setDownloadingCertificate(null);
     }
-  }
+  };
 
   const handleSave = async () => {
     const result = await updateProfile({
@@ -145,81 +145,103 @@ export default function PerfilPage() {
       profession: profileData.profession,
       phone: profileData.phone,
       birthDate: profileData.birthDate ? new Date(profileData.birthDate) : null,
-    })
+    });
 
     if (result.success) {
-      setIsEditing(false)
-      success("Perfil atualizado com sucesso!")
+      setIsEditing(false);
+      success('Perfil atualizado com sucesso!');
     } else {
-      console.error(result.error)
-      showError("Não foi possível atualizar o perfil")
+      console.error(result.error);
+      showError('Não foi possível atualizar o perfil');
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setProfileData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+  };
 
   const handleProfilePicChange = (url: string) => {
     apiService.updateProfile({ profilePic: url }).then((result) => {
       if (result.success) {
-        success("Imagem de perfil atualizada com sucesso!")
+        success('Imagem de perfil atualizada com sucesso!');
         setProfileData((prev) => ({
           ...prev,
           profilePic: url,
-        }))
+        }));
       } else {
-        showError("Não foi possível atualizar a imagem de perfil")
+        showError('Não foi possível atualizar a imagem de perfil');
       }
-    })
-  }
+    });
+  };
 
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showError("As senhas não coincidem")
-      return
+      showError('As senhas não coincidem');
+      return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      showError("A nova senha deve ter pelo menos 6 caracteres")
-      return
+      showError('A nova senha deve ter pelo menos 6 caracteres');
+      return;
     }
 
-    setIsChangingPassword(true)
+    setIsChangingPassword(true);
     try {
-      const result = await apiService.changePassword(passwordData.currentPassword, passwordData.newPassword)
+      const result = await apiService.changePassword(passwordData.currentPassword, passwordData.newPassword);
 
       if (result.success) {
-        success("Senha alterada com sucesso!")
+        success('Senha alterada com sucesso!');
         setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        })
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
       } else {
-        showError(result.error || "Não foi possível alterar a senha")
+        showError(result.error || 'Não foi possível alterar a senha');
       }
     } catch (error) {
-      console.error("Error changing password:", error)
-      showError("Erro ao alterar senha")
+      console.error('Error changing password:', error);
+      showError('Erro ao alterar senha');
     } finally {
-      setIsChangingPassword(false)
+      setIsChangingPassword(false);
     }
-  }
+  };
 
   const handlePasswordInputChange = (field: string, value: string) => {
     setPasswordData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+  };
+
+  const formatAngolaPhone = (value: string): string => {
+    // Remove tudo que não for dígito
+    const digits = value.replace(/\D/g, '');
+
+    // Remove o prefixo 244 se já vier incluído
+    const local = digits.startsWith('244') ? digits.slice(3) : digits;
+
+    // Limita a 9 dígitos (formato local de Angola)
+    const trimmed = local.slice(0, 9);
+
+    // Aplica a máscara: 9XX XXX XXX
+    let formatted = trimmed;
+    if (trimmed.length > 3) {
+      formatted = trimmed.slice(0, 3) + ' ' + trimmed.slice(3);
+    }
+    if (trimmed.length > 6) {
+      formatted = trimmed.slice(0, 3) + ' ' + trimmed.slice(3, 6) + ' ' + trimmed.slice(6);
+    }
+
+    return formatted ? `+244 ${formatted}` : '';
+  };
 
   if (isLoading || !user) {
     return (
-      <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <ProtectedRoute allowedRoles={['STUDENT']}>
         <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
@@ -227,11 +249,11 @@ export default function PerfilPage() {
           </div>
         </div>
       </ProtectedRoute>
-    )
+    );
   }
 
   return (
-    <ProtectedRoute allowedRoles={["STUDENT"]}>
+    <ProtectedRoute allowedRoles={['STUDENT']}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <CollapsibleSidebar onToggle={setIsCollapsed} />
 
@@ -288,14 +310,14 @@ export default function PerfilPage() {
                           <div className="relative group pb-2 pr-2 md:pb-0 md:pr-0">
                             <Avatar className="w-32 h-32 rounded-2xl">
                               <AvatarImage
-                                src={profileData.profilePic || "/placeholder.svg?height=96&width=96"}
+                                src={profileData.profilePic || '/placeholder.svg?height=96&width=96'}
                                 key={profileData.profilePic} // Força re-render quando URL muda
                               />
                               <AvatarFallback className="text-2xl">
                                 {profileData.nome
-                                  .split(" ")
+                                  .split(' ')
                                   .map((n) => n[0])
-                                  .join("")}
+                                  .join('')}
                               </AvatarFallback>
                             </Avatar>
 
@@ -326,25 +348,25 @@ export default function PerfilPage() {
                               accept="image/*"
                               className="hidden"
                               onChange={async (e) => {
-                                const file = e.target.files?.[0]
+                                const file = e.target.files?.[0];
                                 if (file) {
-                                  console.log("[v0] Iniciando upload da imagem:", file.name)
-                                  const formData = new FormData()
-                                  formData.append("file", file)
+                                  console.log('[v0] Iniciando upload da imagem:', file.name);
+                                  const formData = new FormData();
+                                  formData.append('file', file);
                                   try {
-                                    const response = await fetch("/api/upload", {
-                                      method: "POST",
+                                    const response = await fetch('/api/upload', {
+                                      method: 'POST',
                                       body: formData,
-                                    })
-                                    const data = await response.json()
-                                    console.log("[v0] Resposta do upload:", data)
+                                    });
+                                    const data = await response.json();
+                                    console.log('[v0] Resposta do upload:', data);
                                     if (data && data.url) {
-                                      console.log("[v0] URL recebida:", data.url)
-                                      handleProfilePicChange(data.url)
+                                      console.log('[v0] URL recebida:', data.url);
+                                      handleProfilePicChange(data.url);
                                     }
                                   } catch (error) {
-                                    console.error("[v0] Erro na requisição:", error)
-                                    showError("Erro ao fazer upload da imagem")
+                                    console.error('[v0] Erro na requisição:', error);
+                                    showError('Erro ao fazer upload da imagem');
                                   }
                                 }
                               }}
@@ -377,8 +399,8 @@ export default function PerfilPage() {
                             size="sm"
                             className={
                               isEditing
-                                ? "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
-                                : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                                ? 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700'
+                                : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
                             }
                           >
                             {isEditing ? (
@@ -396,7 +418,7 @@ export default function PerfilPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="nome" className="text-gray-700 dark:text-gray-300">
                               Nome Completo
@@ -406,7 +428,7 @@ export default function PerfilPage() {
                               <Input
                                 id="nome"
                                 value={profileData.nome}
-                                onChange={(e) => handleInputChange("nome", e.target.value)}
+                                onChange={(e) => handleInputChange('nome', e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
@@ -432,15 +454,17 @@ export default function PerfilPage() {
                             <Label htmlFor="phone" className="text-gray-700 dark:text-gray-300">
                               Telefone
                             </Label>
+
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+
                               <Input
                                 id="phone"
                                 type="tel"
                                 value={profileData.phone}
-                                onChange={(e) => handleInputChange("phone", e.target.value)}
+                                onChange={(e) => handleInputChange('phone', formatAngolaPhone(e.target.value))}
                                 disabled={!isEditing}
-                                placeholder="(11) 99999-9999"
+                                placeholder="(+244) 923 456 789"
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
                             </div>
@@ -455,7 +479,7 @@ export default function PerfilPage() {
                                 id="birthDate"
                                 type="date"
                                 value={profileData.birthDate}
-                                onChange={(e) => handleInputChange("birthDate", e.target.value)}
+                                onChange={(e) => handleInputChange('birthDate', e.target.value)}
                                 disabled={!isEditing}
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
@@ -470,9 +494,9 @@ export default function PerfilPage() {
                               <Input
                                 id="country"
                                 value={profileData.country}
-                                onChange={(e) => handleInputChange("country", e.target.value)}
+                                onChange={(e) => handleInputChange('country', e.target.value)}
                                 disabled={!isEditing}
-                                placeholder="Brasil"
+                                placeholder="Angola"
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
                             </div>
@@ -486,9 +510,9 @@ export default function PerfilPage() {
                               <Input
                                 id="city"
                                 value={profileData.city}
-                                onChange={(e) => handleInputChange("city", e.target.value)}
+                                onChange={(e) => handleInputChange('city', e.target.value)}
                                 disabled={!isEditing}
-                                placeholder="São Paulo"
+                                placeholder="Luanda"
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                               />
                             </div>
@@ -502,7 +526,7 @@ export default function PerfilPage() {
                               <Input
                                 id="profession"
                                 value={profileData.profession}
-                                onChange={(e) => handleInputChange("profession", e.target.value)}
+                                onChange={(e) => handleInputChange('profession', e.target.value)}
                                 disabled={!isEditing}
                                 placeholder="Desenvolvedor, Designer, etc."
                                 className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -542,7 +566,7 @@ export default function PerfilPage() {
                                   id="currentPassword"
                                   type="password"
                                   value={passwordData.currentPassword}
-                                  onChange={(e) => handlePasswordInputChange("currentPassword", e.target.value)}
+                                  onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
                                   placeholder="Digite sua senha atual"
                                   className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 />
@@ -560,7 +584,7 @@ export default function PerfilPage() {
                                   id="newPassword"
                                   type="password"
                                   value={passwordData.newPassword}
-                                  onChange={(e) => handlePasswordInputChange("newPassword", e.target.value)}
+                                  onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
                                   placeholder="Digite sua nova senha"
                                   className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 />
@@ -572,19 +596,19 @@ export default function PerfilPage() {
                                     <div
                                       className={`h-2 rounded-full transition-all duration-300 ${
                                         passwordData.newPassword.length >= 6
-                                          ? "bg-green-500 w-full"
+                                          ? 'bg-green-500 w-full'
                                           : passwordData.newPassword.length >= 3
-                                            ? "bg-yellow-500 w-2/3"
-                                            : "bg-red-500 w-1/3"
+                                            ? 'bg-yellow-500 w-2/3'
+                                            : 'bg-red-500 w-1/3'
                                       }`}
                                     ></div>
                                   </div>
                                   <span className="text-xs text-gray-500 dark:text-gray-400 min-w-fit">
                                     {passwordData.newPassword.length >= 6
-                                      ? "Forte"
+                                      ? 'Forte'
                                       : passwordData.newPassword.length >= 3
-                                        ? "Média"
-                                        : "Fraca"}
+                                        ? 'Média'
+                                        : 'Fraca'}
                                   </span>
                                 </div>
                               )}
@@ -601,7 +625,7 @@ export default function PerfilPage() {
                                   id="confirmPassword"
                                   type="password"
                                   value={passwordData.confirmPassword}
-                                  onChange={(e) => handlePasswordInputChange("confirmPassword", e.target.value)}
+                                  onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
                                   placeholder="Confirme sua nova senha"
                                   className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 />
@@ -685,7 +709,8 @@ export default function PerfilPage() {
                                 Recomendamos alterar regularmente.
                               </h4>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Alterar sua senha regularmente ajuda a proteger sua conta contra acessos não autorizados.
+                                Alterar sua senha regularmente ajuda a proteger sua conta contra acessos não
+                                autorizados.
                               </p>
                             </div>
                           </div>
@@ -717,7 +742,7 @@ export default function PerfilPage() {
                                 <h3 className="font-semibold text-gray-900 dark:text-white">{conquista.titulo}</h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{conquista.descricao}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                  Conquistado em {new Date(conquista.data).toLocaleDateString("pt-BR")}
+                                  Conquistado em {new Date(conquista.data).toLocaleDateString('pt-BR')}
                                 </p>
                               </div>
                             </div>
@@ -759,7 +784,7 @@ export default function PerfilPage() {
                                     Instrutor: {certificate.course.instructor}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Emitido em {new Date(certificate.issuedAt).toLocaleDateString("pt-BR")}
+                                    Emitido em {new Date(certificate.issuedAt).toLocaleDateString('pt-BR')}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
                                     Credencial: {certificate.token}
@@ -807,5 +832,5 @@ export default function PerfilPage() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
