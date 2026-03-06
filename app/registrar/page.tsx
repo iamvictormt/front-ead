@@ -146,7 +146,7 @@ function RegisterContent() {
 
       <div className="w-full max-w-xl relative z-10 py-8">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-28 h-auto rounded-2xl mb-4">
+          <div className="inline-flex items-center justify-center w-18 md:w-24 h-auto rounded-2xl mb-6">
             <Image src="/logo-vertical.png" alt="Logo" width={320} height={420} className="w-full h-full" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Crie sua conta</h1>

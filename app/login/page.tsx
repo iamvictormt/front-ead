@@ -137,7 +137,7 @@ function LoginContent() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-32 h-auto rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-18 md:w-24 h-auto rounded-2xl mb-6">
             <Image src="/logo-vertical.png" alt="Logo" width={320} height={420} className="w-full h-full" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Bem-vindo de volta</h1>
