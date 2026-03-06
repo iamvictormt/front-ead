@@ -25,6 +25,10 @@ interface CartContextType {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
+  setCartItems: (items: CartItem[]) => void;
+  setPendingCourseIds: (courseIds: string[]) => void;
+  getPendingCourseIds: () => string[];
+  clearPendingCourseIds: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -83,6 +87,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const openCart = () => setIsOpen(true);
   const closeCart = () => setIsOpen(false);
 
+  // Função para setar múltiplos itens de uma vez (usado para links parametrizados)
+  const setCartItems = (newItems: CartItem[]) => {
+    setItems(newItems);
+  };
+
+  // Funções para gerenciar IDs de cursos pendentes (para quando o usuário não está logado)
+  const setPendingCourseIds = (courseIds: string[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pending_cart_course_ids', JSON.stringify(courseIds));
+    }
+  };
+
+  const getPendingCourseIds = (): string[] => {
+    if (typeof window !== 'undefined') {
+      const pending = localStorage.getItem('pending_cart_course_ids');
+      if (pending) {
+        try {
+          return JSON.parse(pending);
+        } catch {
+          return [];
+        }
+      }
+    }
+    return [];
+  };
+
+  const clearPendingCourseIds = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pending_cart_course_ids');
+    }
+  };
+
   const value = {
     items,
     addToCart,
@@ -94,6 +130,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     isOpen,
     openCart,
     closeCart,
+    setCartItems,
+    setPendingCourseIds,
+    getPendingCourseIds,
+    clearPendingCourseIds,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
