@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart, type CartItem } from '@/contexts/cart-context';
@@ -12,40 +12,43 @@ function ComprarContent() {
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const { setCartItems, setPendingCourseIds, clearCart } = useCart();
-  const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // Evitar re-execução
+    if (hasProcessed.current) return;
+    
+    // Aguardar auth carregar
+    if (authLoading) return;
+
     const processCartLink = async () => {
       const coursesParam = searchParams.get('cursos');
       
       if (!coursesParam) {
-        router.push('/cursos-disponiveis');
+        router.replace('/cursos-disponiveis');
         return;
       }
 
       const courseIds = coursesParam.split(',').filter(id => id.trim());
 
       if (courseIds.length === 0) {
-        router.push('/cursos-disponiveis');
+        router.replace('/cursos-disponiveis');
         return;
       }
 
-      // Se ainda está carregando auth, aguardar
-      if (authLoading) {
-        return;
-      }
+      // Marcar como processado para evitar loop
+      hasProcessed.current = true;
 
       // Se usuário não está logado, salvar IDs e redirecionar para login
       if (!user) {
         setPendingCourseIds(courseIds);
-        router.push('/login?redirect=carrinho');
+        router.replace('/login?redirect=carrinho');
         return;
       }
 
       // Usuário está logado, buscar cursos e adicionar ao carrinho
       try {
-        setIsProcessing(true);
         setError(null);
         
         // Limpar carrinho atual
@@ -77,26 +80,24 @@ function ComprarContent() {
 
         if (cartItems.length > 0) {
           setCartItems(cartItems);
-          router.push('/aluno/carrinho');
+          router.replace('/aluno/carrinho');
         } else {
           setError('Não foi possível carregar os cursos selecionados.');
           setTimeout(() => {
-            router.push('/cursos-disponiveis');
+            router.replace('/cursos-disponiveis');
           }, 3000);
         }
       } catch (err) {
         console.error('Erro ao processar carrinho:', err);
         setError('Erro ao processar sua solicitação.');
         setTimeout(() => {
-          router.push('/cursos-disponiveis');
+          router.replace('/cursos-disponiveis');
         }, 3000);
-      } finally {
-        setIsProcessing(false);
       }
     };
 
     processCartLink();
-  }, [searchParams, user, authLoading, router, setCartItems, setPendingCourseIds, clearCart]);
+  }, [authLoading, user, searchParams, router, setCartItems, setPendingCourseIds, clearCart]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -115,7 +116,7 @@ function ComprarContent() {
           <div className="space-y-4">
             <LoadingSpinner />
             <p className="text-gray-600 dark:text-gray-300">
-              {authLoading ? 'Verificando autenticação...' : 'Preparando seu carrinho...'}
+              Preparando seu carrinho...
             </p>
           </div>
         )}
