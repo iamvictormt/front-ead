@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useCart } from "@/contexts/cart-context"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/contexts/cart-context';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
   ArrowLeft,
   Trash2,
@@ -20,28 +20,28 @@ import {
   Zap,
   Info,
   Building2,
-} from "lucide-react"
-import Image from "next/image"
-import { formatKwanza } from "@/lib/utils"
+} from 'lucide-react';
+import Image from 'next/image';
+import { formatKwanza } from '@/lib/utils';
 
 export default function CarrinhoPage() {
-  const router = useRouter()
-  const { items, removeFromCart, clearCart, getTotalPrice } = useCart()
-  const { user } = useAuth()
-  const [paymentMethod, setPaymentMethod] = useState<string>("transferencia")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter();
+  const { items, removeFromCart, clearCart, getTotalPrice } = useCart();
+  const { user } = useAuth();
+  const [paymentMethod, setPaymentMethod] = useState<string>('transferencia');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFinalizarCompra = () => {
     if (!user) {
-      router.push("/login")
-      return
+      router.push('/login');
+      return;
     }
 
-    setIsProcessing(true)
+    setIsProcessing(true);
 
     const cursosList = items
       .map((item, index) => `${index + 1}. ${item.title} - ${formatKwanza(item.price)}`)
-      .join("%0A")
+      .join('%0A');
 
     const message =
       `Olá! Gostaria de finalizar minha compra:%0A%0A` +
@@ -51,18 +51,23 @@ export default function CarrinhoPage() {
       `*Cursos Selecionados:*%0A${cursosList}%0A%0A` +
       `*Valor Total: ${formatKwanza(getTotalPrice())}*%0A%0A` +
       `*Método de Pagamento:* Transferência Bancária%0A%0A` +
-      `Aguardo as instruções para realizar o pagamento.`
+      `Aguardo as instruções para realizar o pagamento.`;
 
-    const whatsappUrl = `https://wa.me/447570087886?text=${message}`
+    const whatsappUrl = `https://wa.me/447570087886?text=${message}`;
 
-    window.open(whatsappUrl, "_blank")
+    window.open(whatsappUrl, '_blank');
 
     setTimeout(() => {
-      clearCart()
-      setIsProcessing(false)
-      router.push("/aluno/meus-cursos")
-    }, 1000)
-  }
+      clearCart();
+      setIsProcessing(false);
+      router.push('/aluno/meus-cursos');
+    }, 1000);
+  };
+
+  const getDiscount = (percentage: number) => {
+    const total = getTotalPrice();
+    return (total * percentage) / 100;
+  };
 
   if (items.length === 0) {
     return (
@@ -87,7 +92,7 @@ export default function CarrinhoPage() {
                 Você ainda não adicionou nenhum curso ao carrinho.
               </p>
               <Button
-                onClick={() => router.push("/aluno/comprar-cursos")}
+                onClick={() => router.push('/aluno/comprar-cursos')}
                 className="bg-[#DE2535] hover:bg-[#c01f2d] dark:bg-[#DE2535] dark:hover:bg-[#c01f2d]"
               >
                 Explorar Cursos
@@ -96,7 +101,7 @@ export default function CarrinhoPage() {
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -193,7 +198,7 @@ export default function CarrinhoPage() {
               <div>
                 <h1 className="text-xl md:text-2xl font-bold dark:text-white">Carrinho de Compras</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {items.length} {items.length === 1 ? "curso selecionado" : "cursos selecionados"}
+                  {items.length} {items.length === 1 ? 'curso selecionado' : 'cursos selecionados'}
                 </p>
               </div>
               <Button
@@ -215,7 +220,7 @@ export default function CarrinhoPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative w-full sm:w-40 h-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0">
                     <Image
-                      src={item.thumbnailUrl || "/placeholder.svg"}
+                      src={item.thumbnailUrl || '/placeholder.svg'}
                       alt={item.title}
                       fill
                       className="object-cover"
@@ -283,13 +288,13 @@ export default function CarrinhoPage() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm md:text-base text-gray-600 dark:text-gray-300">
                   <span>
-                    Subtotal ({items.length} {items.length === 1 ? "curso" : "cursos"})
+                    Subtotal ({items.length} {items.length === 1 ? 'curso' : 'cursos'})
                   </span>
                   <span className="font-medium">{formatKwanza(getTotalPrice())}</span>
                 </div>
                 <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
                   <span>Desconto</span>
-                  <span className="font-medium">Kz 0,00</span>
+                  <span className="font-medium">{formatKwanza(getDiscount(0))}</span>
                 </div>
                 <Separator className="dark:bg-gray-700" />
                 <div className="flex justify-between text-base md:text-lg font-bold dark:text-white">
@@ -330,7 +335,7 @@ export default function CarrinhoPage() {
                 size="lg"
               >
                 {isProcessing ? (
-                  "Processando..."
+                  'Processando...'
                 ) : (
                   <>
                     <MessageCircle className="w-5 h-5 mr-2" />
@@ -385,5 +390,5 @@ export default function CarrinhoPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
