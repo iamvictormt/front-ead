@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Mail, Lock, Shield, ArrowLeft, Clock, Check, X } from 'lucide-react';
-import ImageSlider from '@/components/image-slider';
+
 import { apiService } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
 import Image from 'next/image';
@@ -464,44 +464,43 @@ export default function ForgotPasswordPage() {
   );
 
   return (
-    <div className="min-h-screen flex" data-theme="light">
-      <div className="hidden lg:block lg:w-1/2">
-        <ImageSlider />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 relative overflow-hidden" data-theme="light">
+      {/* Background decorativo */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-200/50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8 bg-gray-50">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center justify-center w-[30%] h-[30%] md-w-full md-h-full rounded-2xl mb-8 md:mb-12">
-              <Image src="/logo-vertical.png" alt="Logo" width={320} height={420} className="w-full h-full" />
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 md:w-28 md:h-28 rounded-2xl mb-4 md:mb-6">
+            <Image src="/logo-vertical.png" alt="Logo" width={112} height={112} className="w-full h-full object-contain" />
+          </div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recuperar senha</h2>
+          <p className="text-gray-600 mt-2 text-sm md:text-base">Digite seu email para receber o código de recuperação</p>
+        </div>
+
+        <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/80">
+          <CardContent className="px-4 md:px-6 pt-6">
+            {renderStepIndicator()}
+
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+
+            <div className="text-center mt-4 md:mt-6">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 text-sm text-[#121F3F] hover:text-gray-700 font-medium transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar ao login</span>
+              </Link>
             </div>
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recuperar senha</h2>
-        <p className="text-gray-600 mt-2 text-sm md:text-base">Digite seu email para receber o código de recuperação</p>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Card className="shadow-xl border-0">
-            <CardContent className="px-4 md:px-6">
-              {renderStepIndicator()}
-
-              {currentStep === 1 && renderStep1()}
-              {currentStep === 2 && renderStep2()}
-              {currentStep === 3 && renderStep3()}
-
-              <div className="text-center mt-4 md:mt-6">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Voltar ao login</span>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="text-center mt-6 md:mt-8 text-xs md:text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} IMDN. Todos os direitos reservados.</p>
-          </div>
+        <div className="text-center mt-6 md:mt-8 text-xs md:text-sm text-gray-500">
+          <p>© {new Date().getFullYear()} IMDN. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>
