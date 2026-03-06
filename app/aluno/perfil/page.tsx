@@ -220,15 +220,10 @@ export default function PerfilPage() {
   if (isLoading || !user) {
     return (
       <ProtectedRoute allowedRoles={["STUDENT"]}>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <CollapsibleSidebar onToggle={setIsCollapsed} />
-          <div className={contentMargin}>
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-gray-300 dark:border-gray-600 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-300">Carregando perfil do usuário...</p>
-              </div>
-            </div>
+        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
+            <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
           </div>
         </div>
       </ProtectedRoute>

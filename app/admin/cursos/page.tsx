@@ -182,10 +182,10 @@ export default function AdminCoursesPage() {
   if (loading) {
     return (
       <ProtectedRoute allowedRoles={['ADMIN']}>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-primary dark:text-white" />
-            <span className="text-foreground dark:text-white">Carregando cursos...</span>
+        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
+            <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
           </div>
         </div>
       </ProtectedRoute>
@@ -257,7 +257,7 @@ export default function AdminCoursesPage() {
                           'bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300',
                           course.deactivatedIn
                             ? 'opacity-60 grayscale hover:shadow-md hover:opacity-100 hover:grayscale-0 dark:hover:shadow-gray-700/20'
-                            : 'hover:shadow-lg dark:hover:shadow-gray-700/30 hover:-translate-y-1'
+                            : 'hover:shadow-lg dark:hover:shadow-gray-700/30 hover:-translate-y-1',
                         )}
                       >
                         {/* Course thumbnail */}

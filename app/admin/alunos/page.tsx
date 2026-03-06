@@ -168,12 +168,12 @@ export default function ManageStudentsPage() {
   if (loading && !usersData.users.length) {
     return (
       <ProtectedRoute allowedRoles={['ADMIN']}>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center pt-14 md:pt-0">
-          <div className="flex items-center gap-2">
-            <LoadingSpinner className="w-6 h-6 text-primary dark:text-white" />
-            <span className="text-foreground dark:text-white">Carregando alunos...</span>
-          </div>
+      <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
+          <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
         </div>
+      </div>
       </ProtectedRoute>
     );
   }
