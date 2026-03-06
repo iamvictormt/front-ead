@@ -1,5 +1,4 @@
-// sidebar-context.tsx
-"use client";
+'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
@@ -13,34 +12,36 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-collapsed');
-      return saved ? JSON.parse(saved) : false;
-    }
-    return false;
-  });
-
-  const [isMobileOpen, setIsMobileOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-mobile-open');
-      return saved ? JSON.parse(saved) : false;
-    }
-    return false;
-  });
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
-  }, [isCollapsed]);
+    const collapsed = localStorage.getItem('sidebar-collapsed');
+    const mobile = localStorage.getItem('sidebar-mobile-open');
+
+    if (collapsed) setIsCollapsed(JSON.parse(collapsed));
+    if (mobile) setIsMobileOpen(JSON.parse(mobile));
+
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('sidebar-mobile-open', JSON.stringify(isMobileOpen));
-  }, [isMobileOpen]);
+    if (mounted) {
+      localStorage.setItem('sidebar-collapsed', JSON.stringify(isCollapsed));
+    }
+  }, [isCollapsed, mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('sidebar-mobile-open', JSON.stringify(isMobileOpen));
+    }
+  }, [isMobileOpen, mounted]);
+
+  if (!mounted) return null;
 
   return (
-    <SidebarContext.Provider
-      value={{ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }}
-    >
+    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }}>
       {children}
     </SidebarContext.Provider>
   );
