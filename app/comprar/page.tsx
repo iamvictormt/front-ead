@@ -40,10 +40,10 @@ function ComprarContent() {
       // Marcar como processado para evitar loop
       hasProcessed.current = true;
 
-      // Se usuário não está logado, salvar IDs e redirecionar para login
+      // Se usuário não está logado, salvar IDs e redirecionar para registrar
       if (!user) {
         setPendingCourseIds(courseIds);
-        router.replace('/login?redirect=carrinho');
+        router.replace('/registrar?redirect=carrinho');
         return;
       }
 
