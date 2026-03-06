@@ -354,7 +354,7 @@ export default function ConfigAdminPage() {
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
                 <Tabs defaultValue="pagina-inicial" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800">
+                  <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-gray-100 dark:bg-gray-800">
                     <TabsTrigger
                       value="pagina-inicial"
                       className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-xs sm:text-sm"
