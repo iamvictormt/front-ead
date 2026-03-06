@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, Bell, Shield, Palette, Save } from 'lucide-react'
+import { Footer } from '@/components/footer'
 
 export default function ConfigStudentPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -301,6 +302,8 @@ export default function ConfigStudentPage() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

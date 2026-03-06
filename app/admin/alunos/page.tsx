@@ -20,6 +20,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
+import { Footer } from '@/components/footer';
 
 interface User {
   id: number;
@@ -686,6 +687,8 @@ export default function ManageStudentsPage() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

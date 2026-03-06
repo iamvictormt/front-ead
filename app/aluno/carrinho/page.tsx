@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { formatKwanza } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 export default function CarrinhoPage() {
   const router = useRouter();
@@ -397,6 +398,7 @@ export default function CarrinhoPage() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }

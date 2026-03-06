@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/contexts/toast-context';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
+import { Footer } from '@/components/footer';
 
 export default function ConfigAdminPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -1171,6 +1172,8 @@ export default function ConfigAdminPage() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

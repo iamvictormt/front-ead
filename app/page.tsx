@@ -12,6 +12,7 @@ import { apiService, type CourseAvailable } from '@/lib/api';
 import Link from 'next/link';
 import { formatKwanza, getVideoEmbedUrl } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Footer } from '@/components/footer';
 
 export default function HomePage() {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -482,6 +483,7 @@ export default function HomePage() {
               </section>
             </div>
           </div>
+          <Footer />
         </main>
       </div>
 

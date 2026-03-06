@@ -14,6 +14,7 @@ import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
 import { useToast } from '@/contexts/toast-context';
 import { useRouter } from 'next/navigation';
+import { Footer } from '@/components/footer';
 
 export default function MyCoursesPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -339,6 +340,8 @@ export default function MyCoursesPage() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

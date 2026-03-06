@@ -20,6 +20,7 @@ import { useToast } from '@/contexts/toast-context';
 import { apiService, type CourseDTO } from '@/lib/api';
 import { ImageUpload } from '@/components/image-upload';
 import { formatKwanza } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 interface Lesson {
   id: string;
@@ -93,7 +94,7 @@ export default function NewCoursePage() {
         JSON.stringify({
           ...data,
           lastSaved: new Date().toISOString(),
-        })
+        }),
       );
       setHasDraft(true);
     } catch (error) {
@@ -278,7 +279,7 @@ export default function NewCoursePage() {
     updateModule(
       moduleId,
       'lessons',
-      module.lessons.filter((l) => l.id !== lessonId)
+      module.lessons.filter((l) => l.id !== lessonId),
     );
   };
 
@@ -766,6 +767,7 @@ export default function NewCoursePage() {
               <Save className="w-4 h-4" />
             </Button>
           </div>
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

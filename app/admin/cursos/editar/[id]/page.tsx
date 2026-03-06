@@ -20,6 +20,7 @@ import { useToast } from '@/contexts/toast-context';
 import { apiService } from '@/lib/api';
 import { ImageUpload } from '@/components/image-upload';
 import { formatKwanza } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 interface Lesson {
   id: string;
@@ -705,6 +706,7 @@ export default function EditCoursePage() {
               <Save className="w-4 h-4" />
             </Button>
           </div>
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

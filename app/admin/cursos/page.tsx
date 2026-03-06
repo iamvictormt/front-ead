@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import clsx from 'clsx';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import { formatKwanza } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 export default function AdminCoursesPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -389,7 +390,9 @@ export default function AdminCoursesPage() {
                   </div>
                 )}
               </div>
+
             </div>
+      <Footer />
           </main>
         </div>
 
@@ -509,8 +512,9 @@ export default function AdminCoursesPage() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+        </div>
+      )}
+
       </div>
     </ProtectedRoute>
   );

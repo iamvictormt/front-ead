@@ -32,6 +32,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { getVideoEmbedUrl } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 export default function CursoPublicoPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -547,6 +548,8 @@ export default function CursoPublicoPage() {
             </div>
           </div>
         </main>
+
+        <Footer />
       </div>
     </div>
   );

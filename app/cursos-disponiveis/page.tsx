@@ -24,6 +24,7 @@ import { formatKwanza } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
+import { Footer } from '@/components/footer';
 
 export default function ComprarCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -134,12 +135,12 @@ export default function ComprarCursosPage() {
 
   if (loading || isLoading) {
     return (
-        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
-            <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
-          </div>
+      <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
+          <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
         </div>
+      </div>
     );
   }
 
@@ -290,8 +291,8 @@ export default function ComprarCursosPage() {
                                   inCart
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
                                     : course.price === 0
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : 'bg-[#DE2535] hover:bg-[#c41e2a] text-accent-foreground text-white'
+                                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                                      : 'bg-[#DE2535] hover:bg-[#c41e2a] text-accent-foreground text-white',
                                 )}
                                 onClick={() => handleAddToCart(course)}
                                 disabled={inCart && user !== null}
@@ -350,6 +351,7 @@ export default function ComprarCursosPage() {
               )}
             </div>
           </div>
+          <Footer />
         </main>
       </div>
 
