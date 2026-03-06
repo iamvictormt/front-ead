@@ -395,10 +395,12 @@ export default function ManageStudentsPage() {
                         Resultados por página:
                       </label>
                       <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-                        <SelectTrigger className="w-20 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <SelectTrigger className="w-30 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="99999999">Todos</SelectItem>
+
                           {PAGE_SIZE_OPTIONS.map((size) => (
                             <SelectItem key={size} value={size.toString()}>
                               {size}
