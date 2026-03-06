@@ -13,9 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { ErrorMessage } from '@/components/error-message';
 import clsx from 'clsx';
-import { Search, Gift, Users, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Gift, Users, ChevronLeft, ChevronRight, X, Download } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 interface User {
   id: number;
@@ -39,6 +43,8 @@ interface Course {
   price: number;
 }
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
 export default function ManageStudentsPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
 
@@ -48,13 +54,17 @@ export default function ManageStudentsPage() {
     page: 1,
     totalPages: 1,
   });
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]); // cursos para o filtro
+  const [enrollCourses, setEnrollCourses] = useState<Course[]>([]); // cursos para vincular
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
+  const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchInput, setSearchInput] = useState(''); // Input temporário antes de pesquisar
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
   const [isSearching, setIsSearching] = useState(false);
+  const [pageSize, setPageSize] = useState(20);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -71,16 +81,21 @@ export default function ManageStudentsPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [currentPage]);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
-    if (selectedUser) loadCourses();
+    if (selectedUser) loadEnrollCourses();
   }, [selectedUser]);
+
+  useEffect(() => {
+    loadAllCourses();
+  }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getAllUsers(currentPage, 20, searchInput || '');
+      const courseId = selectedCourseFilter !== 'all' ? Number(selectedCourseFilter) : undefined;
+      const response = await apiService.getAllUsers(currentPage, pageSize, searchTerm, courseId);
       setUsersData(response.data);
     } catch (error) {
       console.error('Erro ao carregar alunos:', error);
@@ -90,25 +105,69 @@ export default function ManageStudentsPage() {
     }
   };
 
+  const loadAllCourses = async () => {
+    try {
+      const response = await apiService.getAllCourses(); // endpoint que lista todos os cursos
+      setAllCourses(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar cursos para filtro:', error);
+    }
+  };
+
   const handleSearch = () => {
     setSearchTerm(searchInput);
-    setCurrentPage(1); // Reset para primeira página ao pesquisar
+    setCurrentPage(1);
     setIsSearching(true);
-    loadUsers();
-    setIsSearching(false);
+    // Chama loadUsers com os valores atualizados via useEffect após state updates
+    setTimeout(() => {
+      loadUsersWithParams(searchInput, selectedCourseFilter);
+      setIsSearching(false);
+    }, 0);
+  };
+
+  // Versão de loadUsers que aceita parâmetros diretos (evita stale closure)
+  const loadUsersWithParams = async (search: string, courseFilter: string) => {
+    try {
+      setLoading(true);
+      const courseId = courseFilter !== 'all' ? Number(courseFilter) : undefined;
+      const response = await apiService.getAllUsers(1, pageSize, search, courseId);
+      setUsersData(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar alunos:', error);
+      setError('Erro ao carregar alunos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCourseFilterChange = (value: string) => {
+    setSelectedCourseFilter(value);
+    setCurrentPage(1);
+    setTimeout(() => {
+      loadUsersWithParams(searchInput, value);
+    }, 0);
   };
 
   const handleClearFilters = () => {
     setSearchInput('');
     setSearchTerm('');
+    setSelectedCourseFilter('all');
+    setCurrentPage(1);
+    setTimeout(() => {
+      loadUsersWithParams('', 'all');
+    }, 0);
+  };
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
     setCurrentPage(1);
   };
 
-  const loadCourses = async () => {
+  const loadEnrollCourses = async () => {
     if (selectedUser === null) return;
     try {
       const response = await apiService.getAvailableCoursesByUser(selectedUser?.id);
-      setCourses(response.data);
+      setEnrollCourses(response.data);
     } catch (error) {
       console.error('Erro ao carregar cursos:', error);
     }
@@ -152,28 +211,83 @@ export default function ManageStudentsPage() {
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
   const handleNextPage = () => {
-    if (currentPage < usersData.totalPages) {
-      setCurrentPage(currentPage + 1);
+    if (currentPage < usersData.totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      // Busca TODOS os resultados da consulta atual (sem paginação)
+      const studentsToExport: User[] = usersData.users;
+
+      const doc = new jsPDF();
+
+      doc.setFontSize(20);
+      doc.setTextColor(33, 33, 33);
+      doc.text('Lista de Alunos', 14, 22);
+
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      const reportDate = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR });
+      doc.text(`Gerado em: ${reportDate}`, 14, 30);
+
+      // Mostra filtros aplicados no PDF
+      const activeFilters: string[] = [];
+      if (searchTerm) activeFilters.push(`Pesquisa: "${searchTerm}"`);
+      if (selectedCourseFilter !== 'all') {
+        const course = allCourses.find((c) => c.id.toString() === selectedCourseFilter);
+        if (course) activeFilters.push(`Curso: ${course.title}`);
+      }
+      if (activeFilters.length > 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text(`Filtros: ${activeFilters.join(' | ')}`, 14, 37);
+      }
+
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Total de alunos: ${studentsToExport.length}`, 14, activeFilters.length > 0 ? 44 : 37);
+
+      const tableRows = studentsToExport.map((student) => [
+        student.name,
+        student.email,
+        format(new Date(student.createdAt), 'dd/MM/yyyy', { locale: ptBR }),
+      ]);
+
+      autoTable(doc, {
+        head: [['Nome', 'Email', 'Cadastrado em']],
+        body: tableRows,
+        startY: activeFilters.length > 0 ? 50 : 44,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [249, 250, 251] },
+      });
+
+      doc.save(`lista_alunos_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
+      success(`PDF gerado com ${studentsToExport.length} alunos!`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showError('Erro ao gerar PDF.');
+    } finally {
+      setDownloading(false);
     }
   };
 
-  const hasActiveFilters = searchTerm;
+  const hasActiveFilters = searchTerm || selectedCourseFilter !== 'all';
 
   if (loading && !usersData.users.length) {
     return (
       <ProtectedRoute allowedRoles={['ADMIN']}>
-      <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
-          <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
+        <div className="fixed inset-0 z-[9999] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-gray-100 rounded-full animate-spin"></div>
+            <span className="text-gray-900 dark:text-gray-100 font-medium">Carregando...</span>
+          </div>
         </div>
-      </div>
       </ProtectedRoute>
     );
   }
@@ -220,7 +334,7 @@ export default function ManageStudentsPage() {
                 )}
 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 p-4 md:p-6 space-y-4">
-                  {/* Pesquisa */}
+                  {/* Linha 1: Pesquisa + Botão pesquisar */}
                   <div className="flex flex-col md:flex-row gap-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
@@ -229,9 +343,7 @@ export default function ManageStudentsPage() {
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleSearch();
-                          }
+                          if (e.key === 'Enter') handleSearch();
                         }}
                         className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                       />
@@ -255,6 +367,68 @@ export default function ManageStudentsPage() {
                     </Button>
                   </div>
 
+                  {/* Linha 2: Filtro por curso + Resultados por página + Download */}
+                  <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
+                    {/* Filtro por curso */}
+                    <div className="flex items-center gap-2 flex-1">
+                      <label className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        Filtrar por curso:
+                      </label>
+                      <Select value={selectedCourseFilter} onValueChange={handleCourseFilterChange}>
+                        <SelectTrigger className="w-full md:w-84 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                          <SelectValue placeholder="Todos os cursos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os cursos</SelectItem>
+                          {allCourses.map((course) => (
+                            <SelectItem key={course.id} value={course.id.toString()}>
+                              {course.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Resultados por página */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        Resultados por página:
+                      </label>
+                      <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                        <SelectTrigger className="w-20 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAGE_SIZE_OPTIONS.map((size) => (
+                            <SelectItem key={size} value={size.toString()}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Botão PDF */}
+                    <Button
+                      variant="outline"
+                      onClick={handleDownloadPDF}
+                      disabled={downloading}
+                      className="flex items-center space-x-1 bg-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+                    >
+                      {downloading ? (
+                        <>
+                          <LoadingSpinner className="w-4 h-4 mr-2" />
+                          Gerando PDF...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" />
+                          Baixar como PDF
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
                   {/* Botão Limpar Filtros */}
                   {hasActiveFilters && (
                     <div className="flex justify-end">
@@ -271,12 +445,18 @@ export default function ManageStudentsPage() {
                   )}
                 </div>
 
+                {/* Contador de resultados */}
                 <div className="mb-8">
                   <div className="flex items-center gap-2 text-muted-foreground dark:text-gray-300">
                     <span className="text-lg">
-                      {usersData.users.length} aluno{usersData.users.length !== 1 ? 's' : ''} encontrado
-                      {usersData.users.length !== 1 ? 's' : ''}
+                      {usersData.total} aluno{usersData.total !== 1 ? 's' : ''} encontrado
+                      {usersData.total !== 1 ? 's' : ''}
                     </span>
+                    {usersData.total !== usersData.users.length && (
+                      <span className="text-sm text-gray-400 dark:text-gray-500">
+                        (exibindo {usersData.users.length} nesta página)
+                      </span>
+                    )}
                     {hasActiveFilters && (
                       <Badge variant="secondary" className="text-xs">
                         Filtros ativos
@@ -391,12 +571,12 @@ export default function ManageStudentsPage() {
                                             <SelectValue placeholder="Escolha um curso..." />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            {courses.length === 0 && (
+                                            {enrollCourses.length === 0 && (
                                               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block pl-2 pt-2">
                                                 Nenhum curso disponível para esse usuário
                                               </label>
                                             )}
-                                            {courses.map((course) => (
+                                            {enrollCourses.map((course) => (
                                               <SelectItem key={course.id} value={course.id.toString()}>
                                                 <div className="flex items-center justify-between w-full">
                                                   <span>{course.title}</span>

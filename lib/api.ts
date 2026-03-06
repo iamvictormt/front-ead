@@ -317,8 +317,12 @@ class ApiService {
     return this.request(endpoint);
   }
 
-  async getAllUsers(page = 1, limit = 20, search: string): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/users?page=${page}&limit=${limit}&search=${search}`, {
+  async getAllUsers(page = 1, limit = 20, search: string, courseId?: number): Promise<ApiResponse<any[]>> {
+    let url = `/users?page=${page}&limit=${limit}&search=${search}`;
+    if (courseId) {
+      url += `&courseId=${courseId}`;
+    }
+    return this.request<any[]>(url, {
       method: 'GET',
     });
   }
@@ -580,6 +584,19 @@ class ApiService {
     return this.request<any>(`/courses`, {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async getAllUsersForExport(search: string, courseId?: number): Promise<ApiResponse<User[]>> {
+    const searchParams = new URLSearchParams();
+    if (search) searchParams.append('search', search);
+    if (courseId) searchParams.append('courseId', courseId.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = `/users/export${queryString ? `?${queryString}` : ''}`;
+
+    return this.request<User[]>(endpoint, {
+      method: 'GET',
     });
   }
 }
