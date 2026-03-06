@@ -302,8 +302,6 @@ export default function ConfigStudentPage() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

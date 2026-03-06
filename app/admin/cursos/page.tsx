@@ -392,7 +392,6 @@ export default function AdminCoursesPage() {
               </div>
 
             </div>
-      <Footer />
           </main>
         </div>
 

@@ -395,8 +395,6 @@ export default function StudentDashboard() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

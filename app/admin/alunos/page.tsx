@@ -687,8 +687,6 @@ export default function ManageStudentsPage() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

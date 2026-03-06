@@ -351,7 +351,7 @@ export default function ComprarCursosPage() {
               )}
             </div>
           </div>
-          <Footer />
+          {!user && <Footer />}
         </main>
       </div>
 

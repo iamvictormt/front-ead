@@ -340,8 +340,6 @@ export default function MyCoursesPage() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

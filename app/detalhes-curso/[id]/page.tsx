@@ -549,7 +549,7 @@ export default function CursoPublicoPage() {
           </div>
         </main>
 
-        <Footer />
+        {!user && <Footer />}
       </div>
     </div>
   );

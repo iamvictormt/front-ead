@@ -706,7 +706,6 @@ export default function EditCoursePage() {
               <Save className="w-4 h-4" />
             </Button>
           </div>
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

@@ -830,8 +830,6 @@ export default function PerfilPage() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

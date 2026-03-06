@@ -342,8 +342,6 @@ export default function AdminDashboard() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

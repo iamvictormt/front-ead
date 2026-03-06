@@ -334,7 +334,6 @@ export default function BuyCoursesPage() {
                 )}
               </div>
             </div>
-            <Footer />
           </main>
         </div>
 

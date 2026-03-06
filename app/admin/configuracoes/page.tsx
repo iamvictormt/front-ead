@@ -1172,8 +1172,6 @@ export default function ConfigAdminPage() {
               </div>
             </div>
           </main>
-
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>

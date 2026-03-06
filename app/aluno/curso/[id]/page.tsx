@@ -1012,8 +1012,6 @@ export default function CoursePage() {
               </div>
             </div>
             </main>
-
-            <Footer />
           </div>
         </div>
       </ProtectedRoute>

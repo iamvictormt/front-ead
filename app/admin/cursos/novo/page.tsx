@@ -767,7 +767,6 @@ export default function NewCoursePage() {
               <Save className="w-4 h-4" />
             </Button>
           </div>
-          <Footer />
         </div>
       </div>
     </ProtectedRoute>
