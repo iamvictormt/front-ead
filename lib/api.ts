@@ -499,6 +499,17 @@ class ApiService {
     });
   }
 
+  async getHomepageSettings(): Promise<ApiResponse<{ videoUrl: string }>> {
+    return this.request('/settings/homepage');
+  }
+
+  async updateHomepageSettings(data: { videoUrl: string }): Promise<ApiResponse<{ videoUrl: string }>> {
+    return this.request('/settings/homepage', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getCourseDetails(courseId: string): Promise<ApiResponse<MyCourse>> {
     return this.request<MyCourse>(`/courses/my-courses/${courseId}`);
   }
@@ -584,19 +595,6 @@ class ApiService {
     return this.request<any>(`/courses`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
-  }
-
-  async getAllUsersForExport(search: string, courseId?: number): Promise<ApiResponse<User[]>> {
-    const searchParams = new URLSearchParams();
-    if (search) searchParams.append('search', search);
-    if (courseId) searchParams.append('courseId', courseId.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = `/users/export${queryString ? `?${queryString}` : ''}`;
-
-    return this.request<User[]>(endpoint, {
-      method: 'GET',
     });
   }
 }

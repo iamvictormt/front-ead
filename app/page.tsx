@@ -21,6 +21,7 @@ export default function HomePage() {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [currentFormation, setCurrentFormation] = useState(0);
   const [faces, setFaces] = useState<string[]>([]);
+  const [heroVideoUrl, setHeroVideoUrl] = useState('https://vimeo.com/1124877716');
 
   const formations = [
     'Marketing Digital',
@@ -110,7 +111,19 @@ export default function HomePage() {
       }
     };
 
+    const loadHeroVideo = async () => {
+      try {
+        const response = await apiService.getHomepageSettings();
+        if (response.success && response.data?.videoUrl) {
+          setHeroVideoUrl(response.data.videoUrl);
+        }
+      } catch (error) {
+        console.log('Usando vídeo padrão');
+      }
+    };
+
     loadFeaturedCourses();
+    loadHeroVideo();
   }, []);
 
   const scrollToCourses = () => {
@@ -206,7 +219,7 @@ export default function HomePage() {
                 <div className="relative">
                   <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 aspect-video">
                     <iframe
-                      src={getVideoEmbedUrl('https://vimeo.com/1124877716')}
+                      src={getVideoEmbedUrl(heroVideoUrl)}
                       frameBorder="0"
                       allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                       referrerPolicy="strict-origin-when-cross-origin"

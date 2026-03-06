@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Lock, Mail, User2, Info, BadgeInfo } from 'lucide-react';
+import { UserPlus, Trash2, Lock, Mail, User2, Info, BadgeInfo, Video, Link2, ExternalLink, Play } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { apiService, type User } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
@@ -51,9 +51,77 @@ export default function ConfigAdminPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState<User | null>(null);
 
+  // Video settings state
+  const [videoUrl, setVideoUrl] = useState('');
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const [loadingVideoSettings, setLoadingVideoSettings] = useState(true);
+
   useEffect(() => {
     loadAdmins();
+    loadVideoSettings();
   }, []);
+
+  const loadVideoSettings = async () => {
+    try {
+      setLoadingVideoSettings(true);
+      const result = await apiService.getHomepageSettings();
+      console.log(result)
+      if (result.success && result.data) {
+        const { videoUrl } = result.data;
+        setVideoUrl(videoUrl);
+        console.log(videoUrl)
+
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações do vídeo:', error);
+    } finally {
+      setLoadingVideoSettings(false);
+    }
+  };
+
+  const handleSaveVideoUrl = async () => {
+    if (videoUrl && !/^https?:\/\/\S+$/.test(videoUrl.trim())) {
+      showError('Por favor, insira um link de vídeo válido');
+      return;
+    }
+    if (!videoUrl?.trim()) {
+      showError('Por favor, insira um link de vídeo válido');
+      return;
+    }
+
+    setIsSavingVideo(true);
+    try {
+      const result = await apiService.updateHomepageSettings({ videoUrl: videoUrl?.trim() });
+      if (result.success) {
+        success('Link do vídeo atualizado com sucesso!');
+      } else {
+        showError(result.error || 'Não foi possível salvar o link do vídeo');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar vídeo:', error);
+      showError('Erro ao salvar configurações');
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
+  const getVideoEmbedUrl = (url: string): string => {
+    if (!url) return '';
+
+    // YouTube
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+
+    return url;
+  };
 
   const loadAdmins = async () => {
     try {
@@ -199,8 +267,14 @@ export default function ConfigAdminPage() {
           <main className="flex-1">
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
-                <Tabs defaultValue="seguranca" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800">
+                <Tabs defaultValue="pagina-inicial" className="space-y-6">
+                  <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800">
+                    <TabsTrigger
+                      value="pagina-inicial"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                    >
+                      Página Inicial
+                    </TabsTrigger>
                     <TabsTrigger
                       value="seguranca"
                       className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
@@ -214,6 +288,128 @@ export default function ConfigAdminPage() {
                       Administradores
                     </TabsTrigger>
                   </TabsList>
+
+                  {/* Tab Página Inicial - Vídeo */}
+                  <TabsContent value="pagina-inicial">
+                    <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
+                      <CardHeader>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                            <Video className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-gray-900 dark:text-white">Vídeo da Página Inicial</CardTitle>
+                            <CardDescription className="text-gray-600 dark:text-gray-300">
+                              Configure o vídeo de apresentação exibido na página inicial
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {loadingVideoSettings ? (
+                          <div className="flex items-center justify-center py-8">
+                            <LoadingSpinner />
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Coluna da esquerda - Formulário */}
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="videoUrl" className="text-gray-700 dark:text-gray-300">
+                                  Link do Vídeo
+                                </Label>
+                                <div className="relative">
+                                  <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                                  <Input
+                                    id="videoUrl"
+                                    type="url"
+                                    value={videoUrl}
+                                    onChange={(e) => setVideoUrl(e.target.value)}
+                                    placeholder="https://vimeo.com/1234567890"
+                                    className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  Suporta links do Vimeo e YouTube
+                                </p>
+                              </div>
+
+                              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center">
+                                  <Info className="w-4 h-4 mr-2" />
+                                  Formatos Suportados
+                                </h4>
+                                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+                                  <li className="flex items-start">
+                                    <span className="text-blue-500 mr-2">•</span>
+                                    <span>
+                                      <strong>Vimeo:</strong> https://vimeo.com/123456789
+                                    </span>
+                                  </li>
+                                  <li className="flex items-start">
+                                    <span className="text-blue-500 mr-2">•</span>
+                                    <span>
+                                      <strong>YouTube:</strong> https://youtube.com/watch?v=abc123
+                                    </span>
+                                  </li>
+                                  <li className="flex items-start">
+                                    <span className="text-blue-500 mr-2">•</span>
+                                    <span>
+                                      <strong>YouTube:</strong> https://youtu.be/abc123
+                                    </span>
+                                  </li>
+                                </ul>
+                              </div>
+
+                              <div className="pt-2">
+                                <Button
+                                  onClick={handleSaveVideoUrl}
+                                  disabled={isSavingVideo || !videoUrl?.trim()}
+                                  className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-50"
+                                >
+                                  {isSavingVideo ? (
+                                    <>
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                      Salvando...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Video className="w-4 h-4 mr-2" />
+                                      Salvar Alterações
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Coluna da direita - Preview */}
+                            <div className="space-y-3">
+                              <Label className="text-gray-700 dark:text-gray-300">Pré-visualização</Label>
+                              <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 aspect-video bg-gray-100 dark:bg-gray-700">
+                                {videoUrl && /^https?:\/\/\S+$/.test(videoUrl.trim()) ? (
+                                  <iframe
+                                    src={getVideoEmbedUrl(videoUrl) || '' }
+                                    frameBorder="0"
+                                    allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                    className="w-full h-full"
+                                    title="Pré-visualização do vídeo"
+                                  />
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                                    <div className="text-center">
+                                      <Play className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                      <p className="text-sm">Insira um link para ver a pré-visualização</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
                   <TabsContent value="seguranca">
                     <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
@@ -281,8 +477,8 @@ export default function ConfigAdminPage() {
                                         passwordData.newPassword.length >= 6
                                           ? 'bg-green-500 w-full'
                                           : passwordData.newPassword.length >= 3
-                                          ? 'bg-yellow-500 w-2/3'
-                                          : 'bg-red-500 w-1/3'
+                                            ? 'bg-yellow-500 w-2/3'
+                                            : 'bg-red-500 w-1/3'
                                       }`}
                                     ></div>
                                   </div>
@@ -290,8 +486,8 @@ export default function ConfigAdminPage() {
                                     {passwordData.newPassword.length >= 6
                                       ? 'Forte'
                                       : passwordData.newPassword.length >= 3
-                                      ? 'Média'
-                                      : 'Fraca'}
+                                        ? 'Média'
+                                        : 'Fraca'}
                                   </span>
                                 </div>
                               )}
