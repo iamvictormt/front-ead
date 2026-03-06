@@ -24,6 +24,7 @@ import { formatKwanza } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
+import { Footer } from '@/components/footer';
 
 export default function ComprarCursosPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -442,6 +443,8 @@ export default function ComprarCursosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Footer />
     </div>
   );
 }

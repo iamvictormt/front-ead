@@ -9,6 +9,7 @@ import { useSidebar } from "@/contexts/sidebar-context"
 import { apiService, type Course, type DashboardStats, type RecentActivity } from "@/lib/api"
 import { useToast } from "@/contexts/toast-context"
 import Link from "next/link"
+import { Footer } from "@/components/footer"
 
 export default function StudentDashboard() {
   const { isCollapsed, setIsCollapsed } = useSidebar()
@@ -394,6 +395,8 @@ export default function StudentDashboard() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

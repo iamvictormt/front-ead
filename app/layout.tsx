@@ -7,7 +7,6 @@ import { SidebarProvider } from '@/contexts/sidebar-context';
 import { ToastProvider } from '@/contexts/toast-context';
 import { CartProvider } from '@/contexts/cart-context';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
   title: 'IMDN - Instituto de Marketing Digital e Negócio',
@@ -36,7 +35,6 @@ html {
                 <CartProvider>
                   <div className="flex flex-col min-h-screen w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
                     {children}
-                    <Footer />
                   </div>
                 </CartProvider>
               </SidebarProvider>

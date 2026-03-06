@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
+import { Footer } from '@/components/footer';
 
 interface DashboardData {
   recentUsers: Array<{
@@ -341,6 +342,8 @@ export default function AdminDashboard() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

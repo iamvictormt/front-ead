@@ -16,6 +16,7 @@ import clsx from 'clsx';
 import { useSidebar } from '@/contexts/sidebar-context';
 import { apiService } from '@/lib/api';
 import { useToast } from '@/contexts/toast-context';
+import { Footer } from '@/components/footer';
 
 export default function PerfilPage() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -829,6 +830,8 @@ export default function PerfilPage() {
               </div>
             </div>
           </main>
+
+          <Footer />
         </div>
       </div>
     </ProtectedRoute>

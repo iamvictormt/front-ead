@@ -3,7 +3,6 @@
 import { useSidebar } from '@/contexts/sidebar-context';
 import { clsx } from 'clsx';
 import { Linkedin, Facebook, Instagram } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" role="img" fill="none" stroke="currentColor">
@@ -14,16 +13,11 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 export function Footer() {
   const { isCollapsed } = useSidebar();
-  const pathname = usePathname();
 
   const footerClass = clsx('transition-all duration-300 ease-in-out py-8 px-6 mt-auto', {
     'md:ml-42': isCollapsed,
     'md:ml-80': !isCollapsed,
   });
-
-  if(pathname === '/registrar' || pathname === '/login') {
-    return null; // Não renderiza o rodapé em páginas de registro e login
-  }
 
   return (
     <footer className={footerClass}>

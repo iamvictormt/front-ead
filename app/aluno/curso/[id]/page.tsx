@@ -47,6 +47,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatKwanza, getVideoEmbedUrl } from '@/lib/utils';
+import { Footer } from '@/components/footer';
 
 const CommentItem = ({
   comment,
@@ -1010,9 +1011,11 @@ export default function CoursePage() {
                 </Tabs>
               </div>
             </div>
-          </main>
+            </main>
+
+            <Footer />
+          </div>
         </div>
-      </div>
-    </ProtectedRoute>
-  );
-}
+      </ProtectedRoute>
+    );
+  }
