@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Lock, Mail, User2, Info, BadgeInfo, Video, Link2, ExternalLink, Play } from 'lucide-react';
+import { UserPlus, Trash2, Lock, Mail, User2, Info, BadgeInfo, Video, Link2, ExternalLink, Play, Search, ShoppingCart, Copy, Check, X } from 'lucide-react';
 import { LoadingSpinner } from '@/components/loading-spinner';
-import { apiService, type User } from '@/lib/api';
+import { apiService, type User, type CourseAvailable } from '@/lib/api';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/contexts/toast-context';
 import { useSidebar } from '@/contexts/sidebar-context';
 import clsx from 'clsx';
@@ -56,10 +57,95 @@ export default function ConfigAdminPage() {
   const [isSavingVideo, setIsSavingVideo] = useState(false);
   const [loadingVideoSettings, setLoadingVideoSettings] = useState(true);
 
+  // Export Link state
+  const [courses, setCourses] = useState<CourseAvailable[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
+  const [selectedCourses, setSelectedCourses] = useState<CourseAvailable[]>([]);
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
+
   useEffect(() => {
     loadAdmins();
     loadVideoSettings();
+    loadCourses();
   }, []);
+
+  const loadCourses = async () => {
+    try {
+      setLoadingCourses(true);
+      const response = await apiService.getAllCourses();
+      if (response.success && response.data) {
+        // Filtrar apenas cursos ativos (sem deactivatedIn)
+        const activeCourses = response.data.filter(course => !course.deactivatedIn);
+        setCourses(activeCourses);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar cursos:', error);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  const filteredCourses = courses.filter((course) => {
+    const searchLower = courseSearchTerm.toLowerCase();
+    return (
+      course.title?.toLowerCase().includes(searchLower) ||
+      course.instructor?.toLowerCase().includes(searchLower) ||
+      course.category?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const handleToggleCourse = (course: CourseAvailable) => {
+    setSelectedCourses((prev) => {
+      const isSelected = prev.some((c) => c.id === course.id);
+      if (isSelected) {
+        return prev.filter((c) => c.id !== course.id);
+      }
+      return [...prev, course];
+    });
+    setGeneratedLink('');
+    setLinkCopied(false);
+  };
+
+  const handleRemoveSelectedCourse = (courseId: number) => {
+    setSelectedCourses((prev) => prev.filter((c) => c.id !== courseId));
+    setGeneratedLink('');
+    setLinkCopied(false);
+  };
+
+  const handleGenerateLink = () => {
+    if (selectedCourses.length === 0) {
+      showError('Selecione pelo menos um curso');
+      return;
+    }
+
+    const courseIds = selectedCourses.map((c) => c.id).join(',');
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const link = `${baseUrl}/comprar?cursos=${courseIds}`;
+    setGeneratedLink(link);
+    setLinkCopied(false);
+  };
+
+  const handleCopyLink = async () => {
+    if (!generatedLink) return;
+    
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      setLinkCopied(true);
+      success('Link copiado para a área de transferência!');
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch (error) {
+      console.error('Erro ao copiar link:', error);
+      showError('Erro ao copiar link');
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedCourses([]);
+    setGeneratedLink('');
+    setLinkCopied(false);
+  };
 
   const loadVideoSettings = async () => {
     try {
@@ -268,22 +354,28 @@ export default function ConfigAdminPage() {
             <div className="px-4 md:px-6 py-4 md:py-6">
               <div className="mx-auto">
                 <Tabs defaultValue="pagina-inicial" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800">
+                  <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800">
                     <TabsTrigger
                       value="pagina-inicial"
-                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-xs sm:text-sm"
                     >
                       Página Inicial
                     </TabsTrigger>
                     <TabsTrigger
+                      value="exportar-link"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-xs sm:text-sm"
+                    >
+                      Exportar Link
+                    </TabsTrigger>
+                    <TabsTrigger
                       value="seguranca"
-                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-xs sm:text-sm"
                     >
                       Segurança
                     </TabsTrigger>
                     <TabsTrigger
                       value="administradores"
-                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-xs sm:text-sm"
                     >
                       Administradores
                     </TabsTrigger>
@@ -406,11 +498,232 @@ export default function ConfigAdminPage() {
                               </div>
                             </div>
                           </div>
-                        )}
+)}
                       </CardContent>
                     </Card>
                   </TabsContent>
 
+                  {/* Tab Exportar Link */}
+                  <TabsContent value="exportar-link">
+                    <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
+                      <CardHeader>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                            <Link2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-gray-900 dark:text-white">Exportar Link de Compra</CardTitle>
+                            <CardDescription className="text-gray-600 dark:text-gray-300">
+                              Gere links parametrizados para redirecionar usuários diretamente ao carrinho com cursos pré-selecionados
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Coluna da esquerda - Busca e seleção de cursos */}
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-gray-700 dark:text-gray-300">
+                                Buscar Cursos
+                              </Label>
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+                                <Input
+                                  type="text"
+                                  value={courseSearchTerm}
+                                  onChange={(e) => setCourseSearchTerm(e.target.value)}
+                                  placeholder="Buscar por nome, instrutor ou categoria..."
+                                  className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Lista de cursos */}
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-lg max-h-80 overflow-y-auto">
+                              {loadingCourses ? (
+                                <div className="flex items-center justify-center py-8">
+                                  <LoadingSpinner />
+                                </div>
+                              ) : filteredCourses.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
+                                  <Search className="w-8 h-8 mb-2 opacity-50" />
+                                  <p className="text-sm">Nenhum curso encontrado</p>
+                                </div>
+                              ) : (
+                                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                  {filteredCourses.map((course) => {
+                                    const isSelected = selectedCourses.some((c) => c.id === course.id);
+                                    return (
+                                      <div
+                                        key={course.id}
+                                        onClick={() => handleToggleCourse(course)}
+                                        className={`p-3 flex items-center gap-3 cursor-pointer transition-colors ${
+                                          isSelected
+                                            ? 'bg-green-50 dark:bg-green-900/20'
+                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                        }`}
+                                      >
+                                        <Checkbox
+                                          checked={isSelected}
+                                          onCheckedChange={() => handleToggleCourse(course)}
+                                          className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                                        />
+                                        <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
+                                          <img
+                                            src={course.thumbnailUrl || '/placeholder.svg?height=48&width=48'}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                            {course.title}
+                                          </p>
+                                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {course.instructor} • {course.category}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Coluna da direita - Cursos selecionados e link gerado */}
+                          <div className="space-y-4">
+                            {/* Cursos selecionados */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-gray-700 dark:text-gray-300">
+                                  Cursos Selecionados ({selectedCourses.length})
+                                </Label>
+                                {selectedCourses.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleClearSelection}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 h-8 px-2"
+                                  >
+                                    <X className="w-4 h-4 mr-1" />
+                                    Limpar
+                                  </Button>
+                                )}
+                              </div>
+                              <div className="border border-gray-200 dark:border-gray-700 rounded-lg min-h-32 max-h-48 overflow-y-auto">
+                                {selectedCourses.length === 0 ? (
+                                  <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
+                                    <ShoppingCart className="w-8 h-8 mb-2 opacity-50" />
+                                    <p className="text-sm">Selecione cursos na lista ao lado</p>
+                                  </div>
+                                ) : (
+                                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                                    {selectedCourses.map((course) => (
+                                      <div
+                                        key={course.id}
+                                        className="p-2 flex items-center gap-2"
+                                      >
+                                        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
+                                          <img
+                                            src={course.thumbnailUrl || '/placeholder.svg?height=40&width=40'}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                            {course.title}
+                                          </p>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleRemoveSelectedCourse(course.id)}
+                                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                        >
+                                          <X className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Botão gerar link */}
+                            <Button
+                              onClick={handleGenerateLink}
+                              disabled={selectedCourses.length === 0}
+                              className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50"
+                            >
+                              <Link2 className="w-4 h-4 mr-2" />
+                              Gerar Link
+                            </Button>
+
+                            {/* Link gerado */}
+                            {generatedLink && (
+                              <div className="space-y-2">
+                                <Label className="text-gray-700 dark:text-gray-300">
+                                  Link Gerado
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="text"
+                                    value={generatedLink}
+                                    readOnly
+                                    className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                                  />
+                                  <Button
+                                    onClick={handleCopyLink}
+                                    className={`px-4 ${
+                                      linkCopied
+                                        ? 'bg-green-600 hover:bg-green-700'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
+                                  >
+                                    {linkCopied ? (
+                                      <Check className="w-4 h-4" />
+                                    ) : (
+                                      <Copy className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Informações */}
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center">
+                                <Info className="w-4 h-4 mr-2" />
+                                Como funciona
+                              </h4>
+                              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">1.</span>
+                                  <span>Selecione os cursos que deseja incluir no link</span>
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">2.</span>
+                                  <span>Clique em &quot;Gerar Link&quot; para criar o URL</span>
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">3.</span>
+                                  <span>Copie e use o link na sua landing page</span>
+                                </li>
+                                <li className="flex items-start">
+                                  <span className="text-blue-500 mr-2">4.</span>
+                                  <span>Usuários serão redirecionados ao carrinho com os cursos já adicionados</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
                   <TabsContent value="seguranca">
                     <Card className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 border-gray-200 dark:border-gray-700">
                       <CardHeader>

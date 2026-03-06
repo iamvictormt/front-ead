@@ -69,6 +69,14 @@ export default function CarrinhoPage() {
     return (total * percentage) / 100;
   };
 
+  const handleBack = () => {
+    if(user) {
+      router.push('/aluno/comprar-cursos');
+      return;
+    }
+    router.back();
+  }
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -109,7 +117,7 @@ export default function CarrinhoPage() {
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
         <Button
           variant="ghost"
-          onClick={() => router.back()}
+          onClick={() => handleBack()}
           className="mb-4 md:mb-6 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

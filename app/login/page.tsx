@@ -2,8 +2,8 @@
 
 import type React from 'react';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,20 +11,25 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { useCart, type CartItem } from '@/contexts/cart-context';
 import { useToast } from '@/contexts/toast-context';
+import { apiService } from '@/lib/api';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
 
   const { login, isLoading, user } = useAuth();
+  const { setCartItems, getPendingCourseIds, clearPendingCourseIds, clearCart } = useCart();
   const [loginError, setLoginError] = useState('');
   const { success, error: showError } = useToast();
+  const [loadingAuth, setLoadingAuth] = useState(false);
 
   useEffect(() => {
     if (theme && theme !== 'light') {
@@ -44,6 +49,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setLoadingAuth(true);
 
     const result = await login(email, password);
 
@@ -52,6 +58,51 @@ export default function LoginPage() {
       if (originalTheme) {
         setTheme(originalTheme);
         localStorage.removeItem('originalTheme');
+      }
+
+      // Verificar se há cursos pendentes para adicionar ao carrinho
+      const pendingCourseIds = getPendingCourseIds();
+      const redirectParam = searchParams.get('redirect');
+
+      if (pendingCourseIds.length > 0 && redirectParam === 'carrinho') {
+        // Buscar cursos e adicionar ao carrinho
+        try {
+          clearCart();
+          const cartItems: CartItem[] = [];
+
+          for (const courseId of pendingCourseIds) {
+            try {
+              const response = await apiService.getCourse(courseId);
+              if (response.success && response.data) {
+                const course = response.data;
+                cartItems.push({
+                  id: course.id.toString(),
+                  title: course.title,
+                  price: course.price,
+                  thumbnailUrl: course.thumbnailUrl || '/placeholder.svg',
+                  instructor: {
+                    name: course.instructor || 'Instrutor',
+                    avatar: '/placeholder.svg',
+                  },
+                });
+              }
+            } catch (err) {
+              console.error(`Erro ao buscar curso ${courseId}:`, err);
+            }
+          }
+
+          if (cartItems.length > 0) {
+            setCartItems(cartItems);
+          }
+
+          clearPendingCourseIds();
+          success('Login realizado com sucesso!', 'Bem-vindo');
+          router.push('/aluno/carrinho');
+          return;
+        } catch (err) {
+          console.error('Erro ao processar cursos pendentes:', err);
+          clearPendingCourseIds();
+        }
       }
 
       const pendingAction: any = JSON.parse(localStorage.getItem('pendingAction') || 'null');
@@ -68,12 +119,13 @@ export default function LoginPage() {
       success('Login realizado com sucesso!', 'Bem-vindo');
     } else {
       showError(result.error || 'Erro ao fazer login. Tente novamente.');
+      setLoadingAuth(false);
     }
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 md:p-8 relative overflow-hidden" 
+    <div
+      className="min-h-screen flex items-center justify-center p-4 md:p-8 relative overflow-hidden"
       data-theme="light"
     >
       {/* Background decorativo */}
@@ -161,9 +213,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full h-12 bg-[#121F3F] hover:bg-[#1a2d5c] text-white font-medium text-sm md:text-base cursor-pointer transition-all shadow-lg hover:shadow-xl"
-                disabled={isLoading}
+                disabled={isLoading || loadingAuth}
               >
-                {isLoading ? (
+                {isLoading || loadingAuth ? (
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Entrando...</span>
@@ -192,7 +244,10 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600">
                 Não tem uma conta?{' '}
-                <Link href="/registrar" className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                <Link
+                  href={searchParams.get('redirect') === 'carrinho' ? '/registrar?redirect=carrinho' : '/registrar'}
+                  className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+                >
                   Cadastre-se
                 </Link>
               </p>
@@ -205,5 +260,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

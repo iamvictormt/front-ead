@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,11 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, Lock, User, Shield, Check, X } from "lucide-react"
 import { apiService } from "@/lib/api"
+import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/contexts/toast-context"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 
-export default function RegisterPage() {
+function RegisterContent() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,7 +29,9 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { success, error: showError } = useToast()
+  const { getPendingCourseIds } = useCart()
   const { theme, setTheme } = useTheme()
 
   const [passwordValidation, setPasswordValidation] = useState({
@@ -107,8 +110,21 @@ export default function RegisterPage() {
         setTheme(originalTheme)
         localStorage.removeItem("originalTheme")
       }
+      
+      // Verificar se há cursos pendentes para adicionar ao carrinho
+      const pendingCourseIds = getPendingCourseIds()
+      const redirectParam = searchParams.get('redirect')
+      
+      if (pendingCourseIds.length > 0 && redirectParam === 'carrinho') {
+        // Após registro, redirecionar para login com os parâmetros
+        success("Usuário criado com sucesso! Faça login para continuar.")
+        router.push("/login?redirect=carrinho")
+        setIsLoading(false)
+        return
+      }
+      
       success("Usuário criado com sucesso!")
-      router.push("/")
+      router.push("/login")
     } else {
       showError(response.error || "Erro ao criar usuário. Tente novamente.")
     }
@@ -355,7 +371,7 @@ export default function RegisterPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600">
                 Já tem uma conta?{" "}
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                <Link href={searchParams.get('redirect') === 'carrinho' ? '/login?redirect=carrinho' : '/login'} className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">
                   Faça login
                 </Link>
               </p>
@@ -368,5 +384,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
+        <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   )
 }
