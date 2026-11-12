@@ -214,17 +214,17 @@ export default function ComprarCursosPage() {
               </div>
 
               {filteredCourses.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid auto-rows-fr grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
                   {filteredCourses.map((course) => {
                     const inCart = isInCart(course.id.toString());
 
                     return (
                       <div
                         key={course.id}
-                        className="bg-card dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-border dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-400 hover:-translate-y-1"
+                        className="flex h-[550px] sm:h-[560px] flex-col bg-card dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-border dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-400 hover:-translate-y-1"
                       >
                         {/* Course thumbnail */}
-                        <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30">
+                        <div className="relative h-48 sm:h-52 shrink-0 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30">
                           <img
                             src={course.thumbnailUrl || '/placeholder.svg'}
                             alt={course.title}
@@ -241,12 +241,12 @@ export default function ComprarCursosPage() {
                         </div>
 
                         {/* Course content */}
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-2">
+                        <div className="flex flex-1 flex-col p-4 md:p-6">
+                          <h3 className="h-14 text-lg md:text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-2 overflow-hidden">
                             {course.title}
                           </h3>
 
-                          <p className="text-muted-foreground dark:text-gray-300 text-sm mb-4 line-clamp-2">
+                          <p className="h-10 text-muted-foreground dark:text-gray-300 text-sm mb-4 line-clamp-2 overflow-hidden">
                             {course.description}
                           </p>
 
@@ -258,7 +258,7 @@ export default function ComprarCursosPage() {
                           </div>
 
                           {/* Course stats */}
-                          <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground dark:text-gray-300">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm text-muted-foreground dark:text-gray-300">
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 text-yellow-500 fill-current" />
                               <span className="font-medium text-card-foreground dark:text-white">{course.rating}</span>
@@ -270,9 +270,9 @@ export default function ComprarCursosPage() {
                           </div>
 
                           {/* Price and buy button */}
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                          <div className="flex flex-col gap-3 w-full">
                             {/* Preço */}
-                            <div className="text-2xl font-bold text-primary dark:text-blue-400">
+                            <div className="text-xl md:text-2xl font-bold text-primary dark:text-blue-400">
                               {course.price === 0 ? (
                                 <p className="text-sm inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 font-semibold">
                                   Grátis
@@ -283,11 +283,11 @@ export default function ComprarCursosPage() {
                             </div>
 
                             {/* Ações */}
-                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <div className="flex flex-col sm:flex-row gap-2 w-full">
                               {/* Botão de compra */}
                               <Button
                                 className={clsx(
-                                  'flex-1 sm:flex-none transition-all duration-200',
+                                  'flex-1 min-w-0 transition-all duration-200',
                                   inCart
                                     ? 'bg-green-600 hover:bg-green-700 text-white'
                                     : course.price === 0
@@ -316,7 +316,7 @@ export default function ComprarCursosPage() {
                               </Button>
 
                               {/* Botão de visualizar */}
-                              <Link href={`/detalhes-curso/${course.id}`} className="flex-1 sm:flex-none">
+                              <Link href={`/detalhes-curso/${course.id}`} className="flex-1 min-w-0">
                                 <Button className="w-full transition-all duration-200 dark:text-black">
                                   <Eye className="h-4 w-4 mr-1" />
                                   Ver Mais

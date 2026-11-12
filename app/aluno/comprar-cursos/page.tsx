@@ -195,17 +195,17 @@ export default function BuyCoursesPage() {
                 </div>
 
                 {filteredCourses.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid auto-rows-fr grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
                     {filteredCourses.map((course) => {
                       const inCart = isInCart(course.id.toString());
 
                       return (
                         <div
                           key={course.id}
-                          className="bg-card dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-border dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-300 hover:-translate-y-1"
+                          className="flex h-[550px] sm:h-[560px] flex-col bg-card dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-700/20 border border-border dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-700/30 transition-all duration-300 hover:-translate-y-1"
                         >
                           {/* Course thumbnail */}
-                          <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30">
+                          <div className="relative h-48 sm:h-52 shrink-0 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30">
                             <img
                               src={course.thumbnailUrl || '/placeholder.svg'}
                               alt={course.title}
@@ -222,12 +222,12 @@ export default function BuyCoursesPage() {
                           </div>
 
                           {/* Course content */}
-                          <div className="p-6">
-                            <h3 className="text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-1 ">
+                          <div className="flex flex-1 flex-col p-4 md:p-6">
+                            <h3 className="h-14 text-lg md:text-xl font-bold text-card-foreground dark:text-white mb-2 line-clamp-2 overflow-hidden">
                               {course.title}
                             </h3>
 
-                            <p className="text-muted-foreground dark:text-gray-300 text-sm mb-4 line-clamp-2">
+                            <p className="h-10 text-muted-foreground dark:text-gray-300 text-sm mb-4 line-clamp-2 overflow-hidden">
                               {course.description}
                             </p>
 
@@ -239,7 +239,7 @@ export default function BuyCoursesPage() {
                             </div>
 
                             {/* Course stats */}
-                            <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground dark:text-gray-300">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm text-muted-foreground dark:text-gray-300">
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 text-yellow-500 fill-current" />
                                 <span className="font-medium text-card-foreground dark:text-white">

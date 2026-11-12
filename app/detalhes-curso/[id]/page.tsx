@@ -257,11 +257,11 @@ export default function CursoPublicoPage() {
             <div className="mx-auto space-y-6">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/20 p-6 border border-gray-200 dark:border-gray-700">
                 <div className="grid md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1 flex items-center justify-center">
+                  <div className="md:col-span-1 flex min-h-64 md:min-h-0">
                     <img
                       src={course.thumbnailUrl || '/placeholder.svg?height=300&width=400&query=course'}
                       alt={course.title}
-                      className="w-full h-48 md:h-64 object-cover object-center rounded-lg"
+                      className="w-full h-64 md:h-full min-h-64 object-contain object-center rounded-lg bg-gray-100 dark:bg-gray-900"
                     />
                   </div>
                   <div className="md:col-span-2 space-y-4">
